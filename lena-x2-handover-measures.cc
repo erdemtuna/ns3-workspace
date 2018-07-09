@@ -37,10 +37,10 @@ UpdateVelocity(Ptr<Node> node0) {
 
     Ptr <ConstantVelocityMobilityModel> mobility = node0 -> GetObject<ConstantVelocityMobilityModel>();
     Vector velocity = mobility -> GetVelocity() ;
-    if (velocity.x > 0 )
-        mobility->SetVelocity (Vector (-20,0.0,0.0));
+    if (velocity.x > 60 )
+        mobility->SetVelocity (Vector (70,50.0,0.0));
     else
-        mobility->SetVelocity (Vector (+20,0.0,0.0));
+        mobility->SetVelocity (Vector (+50,70,0.0));
 
     Simulator::Schedule (Seconds (3), UpdateVelocity, node0);
 }
@@ -154,12 +154,12 @@ main (int argc, char *argv[])
   // LogComponentEnable ("A3RsrpHandoverAlgorithm", logLevel);
 
   uint16_t numberOfUes = 1;
-  uint16_t numberOfEnbs = 2;
+  uint16_t numberOfEnbs = 7;
   uint16_t numBearersPerUe = 0;
   double distance = 500.0; // m
-  double yForUe = 500.0;   // m
+  double yForUe = 0.0;   // m
   double speed = 20;       // m/s
-  double simTime = (double)(numberOfEnbs + 1) * distance / speed; // 1500 m / 20 m/s = 75 secs
+  double simTime = 30;//(numberOfEnbs + 1) * distance / speed; // 1500 m / 20 m/s = 75 secs
   double enbTxPowerDbm = 46.0;
 
   // change some default attributes so that they are reasonable for
@@ -243,15 +243,27 @@ main (int argc, char *argv[])
   ueNodes.Create (numberOfUes);
 
   // Install Mobility Model in eNB
+  /*
   Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator> ();
   for (uint16_t i = 0; i < numberOfEnbs; i++)
     {
       Vector enbPosition (distance * (i + 1), distance, 0);
       enbPositionAlloc->Add (enbPosition);
     }
+
+    */
   MobilityHelper enbMobility;
+  enbMobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+                                 "MinX", DoubleValue (distance),
+                                 "MinY", DoubleValue (distance),
+                                 "DeltaX", DoubleValue (distance),
+                                 "DeltaY", DoubleValue (distance),
+                                 "GridWidth", UintegerValue (3),
+                                 "LayoutType", StringValue ("RowFirst"));
+
+//  MobilityHelper enbMobility;
   enbMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  enbMobility.SetPositionAllocator (enbPositionAlloc);
+  ////enbMobility.SetPositionAllocator (enbPositionAlloc);
   enbMobility.Install (enbNodes);
 
   // Install Mobility Model in UE
@@ -316,8 +328,7 @@ main (int argc, char *argv[])
           NS_LOG_LOGIC ("installing UDP UL app for UE " << u);
           UdpClientHelper ulClientHelper (remoteHostAddr, ulPort);
           clientApps.Add (ulClientHelper.Install (ue));
-          PacketSinkHelper ulPacketSinkHelper ("ns3::UdpSocketFactory",
-                                               InetSocketAddress (Ipv4Address::GetAny (), ulPort));
+          PacketSinkHelper ulPacketSinkHelper ("ns3::UdpSocketFactory",InetSocketAddress (Ipv4Address::GetAny (), ulPort));
           serverApps.Add (ulPacketSinkHelper.Install (remoteHost));
 
           Ptr<EpcTft> tft = Create<EpcTft> ();
@@ -375,7 +386,7 @@ main (int argc, char *argv[])
 
   Simulator::Stop (Seconds (simTime));
 
-  Simulator::Schedule (Seconds (3), UpdateVelocity, ueNodes.Get (0)); 
+  Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (0)); 
   AnimationInterface anim("Overview.xml");
   Simulator::Run ();
 
