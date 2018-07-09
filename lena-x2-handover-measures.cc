@@ -32,6 +32,19 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("LenaX2HandoverMeasures");
 
+static void
+UpdateVelocity(Ptr<Node> node0) {
+
+    Ptr <ConstantVelocityMobilityModel> mobility = node0 -> GetObject<ConstantVelocityMobilityModel>();
+    Vector velocity = mobility -> GetVelocity() ;
+    if (velocity.x > 0 )
+        mobility->SetVelocity (Vector (-20,0.0,0.0));
+    else
+        mobility->SetVelocity (Vector (+20,0.0,0.0));
+
+    Simulator::Schedule (Seconds (3), UpdateVelocity, node0);
+}
+
 void
 NotifyConnectionEstablishedUe (std::string context,
                                uint64_t imsi,
@@ -362,6 +375,7 @@ main (int argc, char *argv[])
 
   Simulator::Stop (Seconds (simTime));
 
+  Simulator::Schedule (Seconds (3), UpdateVelocity, ueNodes.Get (0)); 
   AnimationInterface anim("Overview.xml");
   Simulator::Run ();
 
