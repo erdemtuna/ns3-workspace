@@ -34,7 +34,8 @@ NS_LOG_COMPONENT_DEFINE ("LenaX2HandoverMeasures");
 
 static void
 UpdateVelocity(Ptr<Node> node0) {
-
+    
+    std::cout << Simulator::Now ().GetSeconds () << std::endl;
     Ptr <ConstantVelocityMobilityModel> mobility = node0 -> GetObject<ConstantVelocityMobilityModel>();
  //   Vector velocity = mobility -> GetVelocity() ;
     Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
@@ -383,9 +384,9 @@ main (int argc, char *argv[])
 
 
   Simulator::Stop (Seconds (simTime));
-
-  Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (0)); 
-  Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (1));
+  for(int j=0 ; j<numberOfUes ; j++) {
+  Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (j)); 
+  }
   AnimationInterface anim("Overview.xml");
   Simulator::Run ();
 
