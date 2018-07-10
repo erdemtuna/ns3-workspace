@@ -342,11 +342,15 @@ main(int argc, char * argv[]) {
     Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/HandoverEndOk",
         MakeCallback( & NotifyHandoverEndOkUe));
 
+    // send UEs to scheduler to change velocities
     Simulator::Stop(Seconds(simTime));
     for (int j = 0; j < numberOfUes; j++) {
         Simulator::Schedule(Seconds(2), UpdateVelocity, ueNodes.Get(j));
     }
+
+    // Create animation
     AnimationInterface anim("Overview.xml");
+
     Simulator::Run();
 
     // GtkConfigStore config;
