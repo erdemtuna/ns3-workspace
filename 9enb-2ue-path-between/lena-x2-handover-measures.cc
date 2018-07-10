@@ -384,9 +384,13 @@ main (int argc, char *argv[])
 
 
   Simulator::Stop (Seconds (simTime));
+
+  // call velocity changer
   for(int j=0 ; j<numberOfUes ; j++) {
   Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (j)); 
   }
+
+  // generate animation
   AnimationInterface anim("Overview.xml");
   Simulator::Run ();
 
