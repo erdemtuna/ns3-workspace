@@ -22,35 +22,31 @@ set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1200, 80
 set out 'gp.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
-set title "Simple Plots"
-set title  font ",20" norotate
+#set title "Simple Plots"
+#set title  font ",20" norotate
 
 ########### BUILDINGS SECTION ###########
-set object 1 rect from 98.7643,30.7945 to 116.132,43.4196 front fc "gray" 
-set object 2 rect from 134.805,65.3908 to 136.935,73.6308 front fc "gray" 
-set object 3 rect from 64.1095,28.0841 to 67.5381,39.1516 front fc "gray" 
-set object 4 rect from 136.728,11.5013 to 143.131,18.8725 front fc "gray" 
-set object 5 rect from 197.638,28.8283 to 198.852,32.4983 front fc "gray" 
-set object 6 rect from 170.895,23.7043 to 187.308,29.3872 front fc "gray" 
-set object 7 rect from 95.8892,10.4601 to 112.894,28.6995 front fc "gray" 
-set object 8 rect from 107.405,4.14809 to 121.561,6.7188 front fc "gray"
+
 
 ########### UE SECTION ###########
-set label "1" at 80,5 left font "Helvetica,8" textcolor rgb "black" front point pt 1 ps 1 lc rgb "black" offset 0,0
-set label "UE-1" at 60,50 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "blue"
+set label "UE-1" at 0,0 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "blue"
 
 ########### eNB SECTION ###########
-set label "LTE eNB-1" at 100,70 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
-set label "LTE eNB-2" at 700,70 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
-set label "mmWave eNB-3" at 50,80 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "#FF1347"
-set label "mmWave eNB-4" at 100,80 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "#FF6347"
-set label "mmWave eNB-5" at 200,10 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "#FF6347"
+set label "LTE eNB-1" at 500,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-2" at 1000,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-3" at 1500,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-4" at 500,1000 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-5" at 1000,1000 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-6" at 1500,1000 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-7" at 500,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-8" at 1000,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "LTE eNB-9" at 1500,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
 
 #set the x range of the map
-set xrange [0:400]
+set xrange [0:1700]
 
 #set the y range of the map
-set yrange [0:200]
+set yrange [0:1700]
 
 #set the axis labels
 set xlabel "x [m]"
@@ -60,11 +56,17 @@ set ylabel  font ",15"
 
 #set the grids
 set grid ytics mytics  # draw lines for each ytics and mytics
-set mytics 1          # set the spacing for the mytics
+set mytics 2          # set the spacing for the mytics
 set grid xtics mxtics  # draw lines for each ytics and mytics
-set mxtics 4           # set the spacing for the mytics
+set mxtics 2           # set the spacing for the mytics
 set grid
+f1(x) = exp(-x**2/2)
+f2(x) = sin(x)/x
+f3(x) = 0.5*sin(2*x)/x
+plot f1(x) ls 1 notitle, f2(x) ls 2 notitle, f3(x) ls 3 notitle, \
+     NaN ls 1 title "Alg. 1", NaN ls 2 title "Alg. 2", NaN ls 3 title "Alg. 3", \
+     NaN with points pt 9 lc rgb "black" title "5% error", \
+     NaN with points pt 7 lc rgb "black" title "3% error", \
+     NaN with points pt 5 lc rgb "black" title "1% error"
 
-
-plot NaN
 set out
