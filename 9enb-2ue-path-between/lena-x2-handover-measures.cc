@@ -32,6 +32,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("LenaX2HandoverMeasures");
 
+/*
 static void
 UpdateVelocity(Ptr<Node> node0) {
     
@@ -43,7 +44,7 @@ UpdateVelocity(Ptr<Node> node0) {
 
     Simulator::Schedule (Seconds (3), UpdateVelocity, node0);
 }
-
+*/
 void
 NotifyConnectionEstablishedUe (std::string context,
                                uint64_t imsi,
@@ -270,7 +271,9 @@ main (int argc, char *argv[])
   ueMobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   ueMobility.Install (ueNodes);
   ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, yForUe, 0));
-  ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, 0, 0));
+  ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (1600, yForUe, 0));
+  ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, speed+5, 0));
+  ueNodes.Get (1)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (-speed, speed+5, 0));
 
   // Install LTE Devices in eNB and UEs
   Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (enbTxPowerDbm));
@@ -383,12 +386,7 @@ main (int argc, char *argv[])
                    MakeCallback (&NotifyHandoverEndOkUe));
 
 
-  Simulator::Stop (Seconds (simTime));
-
-  // call velocity changer
-  for(int j=0 ; j<numberOfUes ; j++) {
-  Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (j)); 
-  }
+  Simulator::Stop (Seconds (simTime*3));
 
   // generate animation
   AnimationInterface anim("Overview.xml");
