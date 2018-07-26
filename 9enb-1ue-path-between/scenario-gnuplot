@@ -22,7 +22,7 @@ set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 72
 set out '9-4genb-1-ue.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
-set title "9 LTE eNB and 1 UE Scenario"
+set title "9 LTE eNBs and 1 UE Scenario"
 set title  font ",20" norotate
 
 ########### Buildings SECTION ###########
