@@ -1,4 +1,4 @@
-# time	cellId	IMSI	RNTI	sinrLinear	componentCarrierId
+% time	cellId	IMSI	RNTI	sinrLinear	componentCarrierId
 0.041	1	1	1	1080.25	0
 0.081	1	1	1	1084.16	0
 0.121	1	1	1	1088.09	0
