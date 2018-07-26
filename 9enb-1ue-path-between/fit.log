@@ -1,0 +1,108 @@
+
+
+*******************************************************************************
+Thu Jul 26 12:24:50 2018
+
+
+FIT:    data read from "UlSinrStats.txt" u (log($1)):(sin($2))
+        format = x:z
+        #datapoints = 2245
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x) = kappa*x**2
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   kappa        
+   0 4.4294912384e+05   0.00e+00  1.43e+01    1.000000e+00
+   3 1.1990756176e+03  -1.52e-10  1.43e-02    1.868212e-02
+
+After 3 iterations the fit converged.
+final sum of squares of residuals : 1199.08
+rel. change during last iteration : -1.51699e-15
+
+degrees of freedom    (FIT_NDF)                        : 2244
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.730991
+variance of residuals (reduced chisquare) = WSSR/ndf   : 0.534347
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+kappa           = 0.0186821        +/- 0.001079     (5.777%)
+
+
+*******************************************************************************
+Thu Jul 26 12:25:37 2018
+
+
+FIT:    data read from "UlSinrStats.txt" u (log($1)):(sin($2))
+        format = x:z
+        #datapoints = 2245
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x) = kappa*x**2
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   kappa        
+   0 4.4294912384e+05   0.00e+00  1.43e+01    1.000000e+00
+   3 1.1990756176e+03  -1.52e-10  1.43e-02    1.868212e-02
+
+After 3 iterations the fit converged.
+final sum of squares of residuals : 1199.08
+rel. change during last iteration : -1.51699e-15
+
+degrees of freedom    (FIT_NDF)                        : 2244
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.730991
+variance of residuals (reduced chisquare) = WSSR/ndf   : 0.534347
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+kappa           = 0.0186821        +/- 0.001079     (5.777%)
+
+
+*******************************************************************************
+Thu Jul 26 12:26:11 2018
+
+
+FIT:    data read from "UlSinrStats.txt" u (log($1)):(sin($5))
+        format = x:z
+        #datapoints = 2245
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x) = kappa*x**2
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   kappa        
+   0 4.6025797486e+05   0.00e+00  1.43e+01    1.000000e+00
+   3 1.0367687841e+03  -1.75e-10  1.43e-02   -5.352115e-04
+
+After 3 iterations the fit converged.
+final sum of squares of residuals : 1036.77
+rel. change during last iteration : -1.75448e-15
+
+degrees of freedom    (FIT_NDF)                        : 2244
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.679719
+variance of residuals (reduced chisquare) = WSSR/ndf   : 0.462018
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+kappa           = -0.000535211     +/- 0.001004     (187.5%)
+
+
+*******************************************************************************
+Thu Jul 26 12:26:54 2018
+
+
+FIT:    data read from "UlSinrStats.txt" u (log($1)):(sin($5))
+        format = x:z
+        #datapoints = 2245
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x) = log(x)
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   kappa        
+   0 4.7516779027e+03   0.00e+00  0.00e+00    1.000000e+00
+BREAK: Singular matrix in Givens()

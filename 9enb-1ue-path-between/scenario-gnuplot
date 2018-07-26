@@ -18,21 +18,28 @@
 ###just a circle example
 ###set object "9" circle at 50,50 size char 2 fillcolor rgb "red" fillstyle solid
 
-set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1200, 800
+set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
 set out '9-4genb-1-ue.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
 set title "9 LTE eNB and 1 UE Scenario"
 set title  font ",20" norotate
 
-########### BUILDINGS SECTION ###########
+########### Buildings SECTION ###########
 
 
 ########### UE SECTION ###########
 set label "1" at 0,0 left offset char 1,-1 point pointtype 7 pointsize 3 lc rgb "blue"
 set arrow 1 from 0,0 to 200,250 linewidth 2.000
 set angle degrees
-set label "UE speed" at 45,85 left rotate by (90-51.34)
+set label "UE speed (20,25)" at 20,60 left rotate by (90-51.34)
+
+########### Handovers SECTION ###########
+set label "1-->4" at (30.6042*20),(30.6042*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "4-->5" at (38*20),(38*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "5-->8" at (50.6842*20),(50.6842*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "8-->9" at (63.36*20),(63.36*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
 
 ########### eNB SECTION ###########
 set label "1" at 500,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
@@ -59,13 +66,15 @@ set xlabel  font ",15" norotate
 set ylabel  font ",15"
 
 #set the grids
-set grid ytics lc rgb "#A9A9A9" lw 1 lt 0
-set grid xtics lc rgb "#A9A9A9" lw 1 lt 0
+set grid ytics lc rgb "#393939" lw 1 lt 0
+set grid xtics lc rgb "#393939" lw 1 lt 0
+
 f1(x) = exp(-x**2/2)
 f2(x) = sin(x)/x
 f3(x) = 0.5*sin(2*x)/x
 plot f1(x) ls 1 notitle, f2(x) ls 2 notitle, f3(x) ls 3 notitle, \
-     NaN with points pt 7 lc rgb "red" title " LTE eNB", \
-     NaN with points pt 7 lc rgb "blue" title "UE"
+     NaN with points pt 7 lc rgb "red" title "LTE eNB", \
+     NaN with points pt 7 lc rgb "blue" title "UE", \
+     NaN with points pt 6 lc rgb "blue" title " Handover"
 
 set out
