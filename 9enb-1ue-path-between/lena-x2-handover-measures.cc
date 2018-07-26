@@ -126,6 +126,12 @@ NotifyHandoverEndOkEnb (std::string context,
             << " RNTI " << rnti
             << std::endl;
 }
+void
+PrintPosition(Ptr<Node> node)
+{
+  Ptr<MobilityModel> model = node->GetObject<MobilityModel> ();
+  NS_LOG_UNCOND("Position = " << model->GetPosition() << " at time " << Simulator::Now().GetSeconds());
+}
 
 
 /**
@@ -271,7 +277,7 @@ main (int argc, char *argv[])
   ueMobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   ueMobility.Install (ueNodes);
   ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, yForUe, 0));
-  ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, 0, 0));
+  ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, speed+5, 0));
 
   // Install LTE Devices in eNB and UEs
   Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (enbTxPowerDbm));
@@ -384,9 +390,9 @@ main (int argc, char *argv[])
                    MakeCallback (&NotifyHandoverEndOkUe));
 
 
-  Simulator::Stop (Seconds (simTime));
-
-  Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (0)); 
+  Simulator::Stop (Seconds (simTime*3));
+  Simulator::Schedule(Seconds(3), &PrintPosition, ueNodes.Get(0));
+  //Simulator::Schedule (Seconds (2), UpdateVelocity, ueNodes.Get (0));
   AnimationInterface anim("Overview.xml");
   Simulator::Run ();
 
