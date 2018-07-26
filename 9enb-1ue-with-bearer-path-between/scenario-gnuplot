@@ -1,0 +1,80 @@
+########### GUIDE for 5G+4G+UE Topology ###########
+# For 5G eNB use the following line
+## set label "mmWave eNB-1" at 60,50 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "tomato"
+#
+# For 4G eNB use the following line
+## set label "LTE eNB-1" at 60,50 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+#
+# For UE use the following line
+## set label "UE-1" at 60,50 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "blue"
+#
+# For building use the following line
+## set object 1 rect from 98.7643,30.7945 to 116.132,43.4196 front fc "gray"
+########### GUIDE for 5G+4G+UE Topology ###########
+
+########### Colors Source ###########
+#https://www2.uni-hamburg.de/Wiss/FB/15/Sustainability/schneider/gnuplot/colors.htm
+
+###just a circle example
+###set object "9" circle at 50,50 size char 2 fillcolor rgb "red" fillstyle solid
+
+set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
+set out '9-4genb-1-ue.png'
+set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
+set samples 50, 50
+set title "9 LTE eNBs and 1 UE Scenario"
+set title  font ",20" norotate
+
+########### Buildings SECTION ###########
+
+
+########### UE SECTION ###########
+set label "1" at 0,0 left offset char 1,-1 point pointtype 7 pointsize 3 lc rgb "blue"
+set arrow 1 from 0,0 to 200,250 linewidth 2.000
+set angles degrees
+set label "UE speed (20,25)" at 20,60 left rotate by 32.01
+
+########### Handovers SECTION ###########
+set label "1-->4" at (30.6042*20),(30.6042*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "4-->5" at (38*20),(38*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "5-->8" at (50.6842*20),(50.6842*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "8-->9" at (63.36*20),(63.36*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+
+########### eNB SECTION ###########
+set label "1" at 500,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "2" at 1000,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "3" at 1500,500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "4" at 500,1000 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "5" at 1000,1000 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "6" at 1500,1000 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "7" at 500,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "8" at 1000,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+set label "9" at 1500,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
+
+#set the x range of the map
+set xrange [0:1600]
+
+#set the y range of the map
+set yrange [0:1600]
+
+
+#set the axis labels
+set xlabel "X [m]"
+set ylabel "Y [m]"
+set xlabel  font ",15" norotate
+set ylabel  font ",15"
+
+#set the grids
+set grid ytics lc rgb "#393939" lw 1 lt 0
+set grid xtics lc rgb "#393939" lw 1 lt 0
+
+f1(x) = exp(-x**2/2)
+f2(x) = sin(x)/x
+f3(x) = 0.5*sin(2*x)/x
+plot f1(x) ls 1 notitle, f2(x) ls 2 notitle, f3(x) ls 3 notitle, \
+     NaN with points pt 7 lc rgb "red" title "LTE eNB", \
+     NaN with points pt 7 lc rgb "blue" title "UE", \
+     NaN with points pt 6 lc rgb "blue" title " Handover"
+
+set out
