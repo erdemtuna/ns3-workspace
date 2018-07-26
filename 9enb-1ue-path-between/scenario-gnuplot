@@ -31,8 +31,8 @@ set title  font ",20" norotate
 ########### UE SECTION ###########
 set label "1" at 0,0 left offset char 1,-1 point pointtype 7 pointsize 3 lc rgb "blue"
 set arrow 1 from 0,0 to 200,250 linewidth 2.000
-set angle degrees
-set label "UE speed (20,25)" at 20,60 left rotate by (90-51.34)
+set angles degrees
+set label "UE speed (20,25)" at 20,60 left rotate by 32.01
 
 ########### Handovers SECTION ###########
 set label "1-->4" at (30.6042*20),(30.6042*25) left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
