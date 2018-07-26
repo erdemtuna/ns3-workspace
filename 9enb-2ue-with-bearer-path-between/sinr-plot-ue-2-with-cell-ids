@@ -1,0 +1,33 @@
+set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
+set out '9enb-2ue-2-sinr-plot-with-cell-ids.png'
+set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
+set title "9 LTE eNBs and 2 UEs Scenario (UE-2)"
+set title  font ",20" norotate
+
+#set sample count for smoothing operation
+set samples 700
+
+#set the line style
+set style line 1 lt 2 lc rgb "red" lw 3
+
+#x-axis properties
+set xrange [0:85]
+set xlabel "Time (s)"
+
+#y1-axis properties
+set ytics 10 nomirror tc rgb "red"
+set ylabel 'SINR (dB)'
+set yrange [-10:90]
+
+#y2-axis properties
+set y2tics 1 nomirror tc rgb "blue"
+set y2label 'Connected LTE eNB ID' 
+set y2range [0:10]
+
+#set the grids
+set grid ytics lc rgb "#393939" lw 1 lt 0
+set grid xtics lc rgb "#393939" lw 1 lt 0
+
+plot "< awk '$3 == 2' UlSinrStats.txt" using 1:(20*log10($5)) smooth mcsplines ls 1 lw 2 title ' SINR' axes x1y1, \
+"< awk '$3 == 2' UlSinrStats.txt" using 1:($2) smooth mcsplines ls 1 lw 2 lc rgb "blue" title ' ID' axes x1y2
+
