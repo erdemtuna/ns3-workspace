@@ -161,7 +161,7 @@ main (int argc, char *argv[])
 
   uint16_t numberOfUes = 1;
   uint16_t numberOfEnbs = 9;
-  uint16_t numBearersPerUe = 0;
+  uint16_t numBearersPerUe = 2;
   double distance = 500.0; // m
   double yForUe = 0.0;   // m
   double speed = 20;       // m/s
