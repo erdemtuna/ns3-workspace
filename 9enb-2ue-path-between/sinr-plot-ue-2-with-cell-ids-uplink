@@ -1,7 +1,7 @@
 #!/usr/bin/env gnuplot
 
 set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
-set out '9enb-2ue-2-sinr-plot-with-cell-ids.png'
+set out '9enb-2ue-2-sinr-plot-with-cell-ids-uplink.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set title "9 LTE eNBs and 2 UEs Scenario (UE-2)"
 set title  font ",20" norotate
@@ -18,7 +18,7 @@ set xlabel "Time (s)"
 
 #y1-axis properties
 set ytics 5 nomirror tc rgb "red"
-set ylabel 'SINR (dB)'
+set ylabel 'Uplink SINR (dB)'
 set yrange [-5:45]
 
 #y2-axis properties
