@@ -153,7 +153,7 @@ main (int argc, char *argv[])
   // LogComponentEnable ("A2A4RsrqHandoverAlgorithm", logLevel);
   // LogComponentEnable ("A3RsrpHandoverAlgorithm", logLevel);
 
-  uint16_t numberOfUes = 2;
+  uint16_t numberOfUes = 3;
   uint16_t numberOfEnbs = 9;
   uint16_t numBearersPerUe = 0;
   double distance = 500.0; // m
@@ -272,8 +272,10 @@ main (int argc, char *argv[])
   ueMobility.Install (ueNodes);
   ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, yForUe, 0));
   ueNodes.Get (1)->GetObject<MobilityModel> ()->SetPosition (Vector (1600, yForUe, 0));
+  ueNodes.Get (2)->GetObject<MobilityModel> ()->SetPosition (Vector (800, yForUe, 0));
   ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, speed+5, 0));
   ueNodes.Get (1)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (-speed, speed+5, 0));
+  ueNodes.Get (2)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, speed+5, 0));
 
   // Install LTE Devices in eNB and UEs
   Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (enbTxPowerDbm));
@@ -285,11 +287,9 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer ueIpIfaces;
   ueIpIfaces = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLteDevs));
 
-  // Attach all UEs to the first eNodeB
-  for (uint16_t i = 0; i < numberOfUes; i++)
-    {
-      lteHelper->Attach (ueLteDevs.Get (i), enbLteDevs.Get (0));
-    }
+  // Attach all UEs to the eNodeBs
+  lteHelper->Attach (ueLteDevs);
+
 
 
   NS_LOG_LOGIC ("setting up applications");
