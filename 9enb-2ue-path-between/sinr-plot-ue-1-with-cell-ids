@@ -1,3 +1,5 @@
+#!/usr/bin/env gnuplot
+
 set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
 set out '9enb-2ue-1-sinr-plot-with-cell-ids.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
@@ -11,13 +13,13 @@ set samples 700
 set style line 1 lt 2 lc rgb "red" lw 3
 
 #x-axis properties
-set xrange [0:85]
+set xrange [0:90]
 set xlabel "Time (s)"
 
 #y1-axis properties
-set ytics 10 nomirror tc rgb "red"
+set ytics 5 nomirror tc rgb "red"
 set ylabel 'SINR (dB)'
-set yrange [-10:90]
+set yrange [-5:45]
 
 #y2-axis properties
 set y2tics 1 nomirror tc rgb "blue"
@@ -28,6 +30,6 @@ set y2range [0:10]
 set grid ytics lc rgb "#393939" lw 1 lt 0
 set grid xtics lc rgb "#393939" lw 1 lt 0
 
-plot "< awk '$3 == 1' UlSinrStats.txt" using 1:(20*log10($5)) smooth mcsplines ls 1 lw 2 title ' SINR' axes x1y1, \
+plot "< awk '$3 == 1' UlSinrStats.txt" using 1:(10*log10($5)) smooth mcsplines ls 1 lw 2 title ' SINR' axes x1y1, \
 "< awk '$3 == 1' UlSinrStats.txt" using 1:($2) smooth mcsplines ls 1 lw 2 lc rgb "blue" title ' ID' axes x1y2
 
