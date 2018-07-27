@@ -1,3 +1,5 @@
+#!/usr/bin/env gnuplot
+
 ########### GUIDE for 5G+4G+UE Topology ###########
 # For 5G eNB use the following line
 ## set label "mmWave eNB-1" at 60,50 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "tomato"
