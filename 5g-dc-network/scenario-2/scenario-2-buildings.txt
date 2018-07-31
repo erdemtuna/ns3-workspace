@@ -1,0 +1,4 @@
+set object 1 rect from 40,80 to 50,110 front fc "gray" 
+set object 2 rect from 50,60 to 125,90 front fc "gray" 
+set object 3 rect from 80,10 to 180,40 front fc "gray" 
+set object 4 rect from 160,60 to 180,90 front fc "gray" 

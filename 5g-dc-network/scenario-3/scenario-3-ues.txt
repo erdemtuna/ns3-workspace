@@ -1,0 +1,1 @@
+set label "1" at 0,15 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "blue"

@@ -1,0 +1,2 @@
+set object 1 rect from 25,5 to 35,10 front fc "gray" 
+set object 2 rect from 65,5 to 75,10 front fc "gray" 

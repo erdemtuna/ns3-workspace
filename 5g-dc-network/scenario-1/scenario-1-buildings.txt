@@ -1,0 +1,8 @@
+set object 1 rect from 55,15 to 60,25 front fc "gray" 
+set object 2 rect from 80,20 to 95,35 front fc "gray" 
+set object 3 rect from 70,40 to 80,45 front fc "gray" 
+set object 4 rect from 105,35 to 110,50 front fc "gray" 
+set object 5 rect from 105,10 to 115,20 front fc "gray" 
+set object 6 rect from 130,15 to 145,20 front fc "gray" 
+set object 7 rect from 150,30 to 155,35 front fc "gray" 
+set object 8 rect from 135,25 to 155,45 front fc "gray" 
