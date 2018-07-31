@@ -340,7 +340,7 @@ main (int argc, char *argv[])
   LogComponentEnable ("EpcHelper", logLevel1);
   LogComponentEnable ("LteEnbRrc", logLevel1);
   LogComponentEnable ("MmWaveHelper", logLevel1);
-  LogComponentEnable ("MmWaveLteRrcProtocolReal", logLevel1);
+  //LogComponentEnable ("MmWaveLteRrcProtocolReal", logLevel1);
   LogComponentEnable ("MmWaveUeNetDevice", logLevel1);
   //LogComponentEnable ("MmWaveBearerStatsConnector", logLevel);
   bool harqEnabled = true;
@@ -351,13 +351,15 @@ main (int argc, char *argv[])
   double ueHeight = 1.75;
   double simTime;
   double nXrooms = 5, nYrooms = 5;
+  std::string netanim_scenario;
+  std::string gnuplot_scenario_buildings, gnuplot_scenario_enbs, gnuplot_scenario_ues;
   //double UeFinaly;
 
   bool print = true;
 
   // Command line arguments
   CommandLine cmd;
-  cmd.AddValue ("scenario", "Custom made scenario types:\n1- A general street scenario in a 160x80 map,\n2- One mmWave and one LTE with two sources of blockage simulating the street corridor,\n3- One mmWave and one LTE with with one source of blockage,\n4- Two mmWaves and one LTE two sources of blockage simulating the street corridor,\n5- Two mmWaves and one LTE one source of blockage.", scenario);
+  cmd.AddValue ("scenario", "Custom made scenario types:\n1- A general street scenario in a 160x80 map,\n2- A general street scenario in a 200x120 map,\n3- One mmWave and one LTE with two sources of blockage (100x15 map),\n4- One mmWave and one LTE with one source of blockage (100x15 map),\n5- Two mmWaves and one LTE two sources of blockage (100x15 map),\n6- Two mmWaves and one LTE one source of blockage (100x15 map),\n7- Corner turn case in 200x120 map.", scenario);
   cmd.Parse(argc, argv);
   NS_LOG_UNCOND("The simulation scenario is " << scenario << ".");
 
@@ -663,6 +665,10 @@ main (int argc, char *argv[])
   		{
   			// Case 1: A general street scenario in a 160x80 map
   			// Reference: End-to-End Simulation of 5G mmWave Networks
+  			netanim_scenario = "scenario-1-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-1-buildings.txt";
+			gnuplot_scenario_enbs = "scenario-1-enbs.txt";
+			gnuplot_scenario_ues = "scenario-1-ues.txt";
 
   			/********** network initializations**********/
   			lteEnbNodes.Create(1);
@@ -674,7 +680,10 @@ main (int argc, char *argv[])
   			mmWaveEnbPos->Add(Vector(50, 65, 3));
   			mmWaveEnbPos->Add(Vector(150, 65, 3));
   			lteEnbPos->Add(Vector(100, 40, 3));
-  			uePos->Add(Vector(80, 5, ueHeight));
+  			uePos->Add(Vector(50, 5, ueHeight));
+  			// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
+			Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
+			simTime = 10;
   			/********** Set positions **********/
 
   			Ptr < Building > building1;
@@ -756,6 +765,10 @@ main (int argc, char *argv[])
   		{
   			// Case 2: A general street scenario in a 200x120 map
   			// Reference: Improved Handover through Dual COnnectivity in 5G mmWave Mobile Networks
+  			netanim_scenario = "scenario-2-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-2-buildings.txt";
+			gnuplot_scenario_enbs = "scenario-2-enbs.txt";
+			gnuplot_scenario_ues = "scenario-2-ues.txt";
 
   			/********** network initializations**********/
   			lteEnbNodes.Create(1);
@@ -821,8 +834,12 @@ main (int argc, char *argv[])
   		case 3:
 		{
 			// Case 3: One mmWave and one LTE with two sources of blockage
-			// 	 	   simulating the street corridor
+			// 	 	   simulating the street corridor (100x15 map)
 			// Reference: Accuracy Comparison of Propagation Models for mmWave Communication in NS-3
+  			netanim_scenario = "scenario-3-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-3-buildings.txt";
+			gnuplot_scenario_enbs = "scenario-3-enbs.txt";
+			gnuplot_scenario_ues = "scenario-3-ues.txt";
 
 			/********** network initializations**********/
 			lteEnbNodes.Create(1);
@@ -863,8 +880,12 @@ main (int argc, char *argv[])
   		case 4:
 		{
 			// Case 4: One mmWave and one LTE with with one source of blockage simulation used
-			// 		   to provide best possible overview of our enhancement.
+			// 		   to provide best possible overview of our enhancement. (100x15 map)
 			// Reference: Accuracy Comparison of Propagation Models for mmWave Communication in NS-3
+  			netanim_scenario = "scenario-4-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-4-buildings.txt";
+			gnuplot_scenario_enbs = "scenario-4-enbs.txt";
+			gnuplot_scenario_ues = "scenario-4-ues.txt";
 
 			/********** network initializations**********/
 			lteEnbNodes.Create(1);
@@ -896,8 +917,12 @@ main (int argc, char *argv[])
 		{
 			// Case 5: Two mmWaves and one LTE two sources of blockage simulating the
 			//		   street corridor with multiple ENBs for better coverage
-			// 	 	   and minimalisation of blind spots.
+			// 	 	   and minimalisation of blind spots. (100x15 map)
 			// Reference: Accuracy Comparison of Propagation Models for mmWave Communication in NS-3
+  			netanim_scenario = "scenario-5-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-5-buildings.txt";
+			gnuplot_scenario_enbs = "scenario-5-enbs.txt";
+			gnuplot_scenario_ues = "scenario-5-ues.txt";
 
 			/********** network initializations**********/
 			lteEnbNodes.Create(1);
@@ -938,8 +963,12 @@ main (int argc, char *argv[])
 		}
   		case 6:
 		{
-			// Case 6: Two mmWaves and one LTE one source of blockage.
+			// Case 6: Two mmWaves and one LTE one source of blockage. (100x15 map)
 			// Reference: Accuracy Comparison of Propagation Models for mmWave Communication in NS-3
+  			netanim_scenario = "scenario-6-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-6-buildings";
+			gnuplot_scenario_enbs = "scenario-6-enbs.txt";
+			gnuplot_scenario_ues = "scenario-6-ues.txt";
 
 			/********** network initializations**********/
 			lteEnbNodes.Create(1);
@@ -973,6 +1002,10 @@ main (int argc, char *argv[])
 		{
 			// Case 7: Corner turn case
 			// Reference: Improved Handover through Dual COnnectivity in 5G mmWave Mobile Networks
+  			netanim_scenario = "scenario-7-overview.xml";
+  			gnuplot_scenario_buildings = "scenario-7-buildings.txt";
+			gnuplot_scenario_enbs = "scenario-7-enbs.txt";
+			gnuplot_scenario_ues = "scenario-7-ues.txt";
 
 			/********** network initializations**********/
 			lteEnbNodes.Create(1);
@@ -1167,17 +1200,16 @@ main (int argc, char *argv[])
     Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/HandoverEndOk",
                      MakeCallback (&NotifyHandoverEndOkUe));
 
-
   // set to print = True if you want to print the map of buildings, ues and enbs
   if(print)
   {
-    PrintGnuplottableBuildingListToFile("scenario-buildings.txt");
-    PrintGnuplottableEnbListToFile("scenario-enbs.txt");
-    PrintGnuplottableUeListToFile("scenario-ues.txt");
+    PrintGnuplottableBuildingListToFile(gnuplot_scenario_buildings);
+    PrintGnuplottableEnbListToFile(gnuplot_scenario_enbs);
+    PrintGnuplottableUeListToFile(gnuplot_scenario_ues);
   }
   
   Simulator::Stop(Seconds(simTime));
-  AnimationInterface anim("Overview-5g.xml");
+  AnimationInterface anim(netanim_scenario);
   Simulator::Run();
 
   Simulator::Destroy();
