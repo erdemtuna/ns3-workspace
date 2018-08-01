@@ -36,6 +36,8 @@
 #include <ns3/lte-ue-net-device.h>
 #include "ns3/netanim-module.h"
 #include "ns3/lte-helper.h"
+#include "ns3/radio-environment-map-helper.h"
+
 
 #include <iostream>
 #include <ctime>
@@ -1129,8 +1131,8 @@ main (int argc, char *argv[])
   }
   
   // Install and start applications on UEs and remote host
-  uint16_t dlPort = 1.234;
-  uint16_t ulPort = 2.000;
+  uint16_t dlPort = 1234;
+  uint16_t ulPort = 2000;
   ApplicationContainer clientApps;
   ApplicationContainer serverApps;
   bool dl = 0;
@@ -1207,8 +1209,8 @@ main (int argc, char *argv[])
     PrintGnuplottableEnbListToFile(gnuplot_scenario_enbs);
     PrintGnuplottableUeListToFile(gnuplot_scenario_ues);
   }
-  
-  Simulator::Stop(Seconds(simTime));
+
+  Simulator::Stop(Seconds(simTime+1));
   AnimationInterface anim(netanim_scenario);
   Simulator::Run();
 
