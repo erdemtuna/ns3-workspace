@@ -154,7 +154,7 @@ PrintGnuplottableBuildingListToFile (std::string filename)
       outFile << "set object " << index
               << " rect from " << box.xMin  << "," << box.yMin
               << " to "   << box.xMax  << "," << box.yMax
-              << " front fc \"gray\" "
+              << " fc \"gray\" "
               << std::endl;
     }
 }
@@ -182,21 +182,21 @@ PrintGnuplottableUeListToFile (std::string filename)
             {
               Vector pos = node->GetObject<MobilityModel> ()->GetPosition ();
               outFile << "set label \"uedev" << uedev->GetImsi ()
-					  << "\" at "<< pos.x << "," << pos.y << " left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"blue\""
+					  << "\" at "<< pos.x << "," << pos.y << " front left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"blue\""
 					  << std::endl;
             }
           else if (mmuedev)
            {
               Vector pos = node->GetObject<MobilityModel> ()->GetPosition ();
               outFile << "set label \"mmuedev" << mmuedev->GetImsi ()
-					  << "\" at "<< pos.x << "," << pos.y << " left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"blue\""
+					  << "\" at "<< pos.x << "," << pos.y << " front left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"blue\""
 					  << std::endl;
             }
           else if (mcuedev)
            {
               Vector pos = node->GetObject<MobilityModel> ()->GetPosition ();
               outFile << "set label \"" << mcuedev->GetImsi ()
-                      << "\" at "<< pos.x << "," << pos.y << " left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"blue\""
+                      << "\" at "<< pos.x << "," << pos.y << " front left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"blue\""
                       << std::endl;
             } 
         }
@@ -226,7 +226,7 @@ PrintGnuplottableEnbListToFile (std::string filename)
               Vector pos = node->GetObject<MobilityModel> ()->GetPosition ();
               outFile << "set label \"" << enbdev->GetCellId ()
                       << "\" at "<< pos.x << "," << pos.y
-                      << " left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"brown\""
+                      << " front left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"brown\""
                       << std::endl;
             }
           else if (mmdev)
@@ -234,7 +234,7 @@ PrintGnuplottableEnbListToFile (std::string filename)
               Vector pos = node->GetObject<MobilityModel> ()->GetPosition ();
               outFile << "set label \"" << mmdev->GetCellId ()
                       << "\" at "<< pos.x << "," << pos.y
-                      << " left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"red\""
+                      << " front left offset char 1,0 point pointtype 7 pointsize 3 lc rgb \"red\""
                       << std::endl;
             } 
         }
