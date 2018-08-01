@@ -19,7 +19,7 @@
 ###set object "9" circle at 50,50 size char 2 fillcolor rgb "red" fillstyle solid
 
 set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
-set out 'scenario-1-map.png'
+set out 'scenario-2-map.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
 set title "Scenario - 2"
@@ -53,19 +53,40 @@ set label "" at 100,80 left offset char -3,0 point pointtype 7 pointsize 1 lc rg
 set label "" at 190,80 left offset char -3,0 point pointtype 7 pointsize 1 lc rgb "black"
 
 ########### Handovers SECTION ###########
-set label "2: 3-->2" at (1600-18.36*20),(18.36*25) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+set label "2-->3" at (10*10),(0.1388*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "3-->2" at (10*10),(4.0188*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "2-->3" at (10*10),(6.0044*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "3-->2" at ((23.1932-8)*10),(8*10) front right offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "2-->3" at ((23.246-8)*10),(8*10) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "2-->1" at (19*10),(80-(27.206-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "1-->3" at (19*10),(80-(28.228-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "3-->2" at (19*10),(80-(28.958-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+
+set label "2-->3" at (19*10),(80-(34.0636-27)*10) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
 ########### eNB SECTION ###########
-set label "1" at 100,100 front left offset char -3.5,.5 point pointtype 7 pointsize 3 lc rgb "brown"
+set label "" at 100,100 front left offset char -3.5,.5 point pointtype 7 pointsize 3 lc rgb "brown"
+set label "1" at 101.5,99.75 front
+
 set label "2" at 0,50 front left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
-set label "" at 100,100 left offset char 1,-.25 back point pointtype 7 pointsize 6 lc rgb "red"
-set label "3" at 101.5,99.75 front
+
+set label "3" at 100,100 left offset char -3.5,.5 back point pointtype 7 pointsize 6 lc rgb "red"
+
 
 #set the x range of the map
 set xrange [-10:200]
+set mxtics 5
 
 #set the y range of the map
 set yrange [-10:130]
+set mytics 2
 
 
 #set the axis labels

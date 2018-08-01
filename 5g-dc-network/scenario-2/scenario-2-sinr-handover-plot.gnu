@@ -21,9 +21,10 @@ set xlabel "Time (s)"
 set mxtics 5
 
 #y1-axis properties
-set ytics 5 nomirror tc rgb "red"
+set ytics 10 nomirror tc rgb "red"
 set ylabel 'SINR (dB)'
 set yrange [-20:60]
+set mytics 2
 
 #y2-axis properties
 set y2tics 1 nomirror tc rgb "blue"
@@ -34,6 +35,7 @@ set y2range [0:4]
 set grid ytics lc rgb "#393939" lw 1 lt 0
 set grid xtics lc rgb "#393939" lw 1 lt 0
 
+#set -5db threshold
 set arrow from graph 0,first -5 to graph 1,first -5 nohead dt 2 lw 2 lc rgb "#000000" front
 
 set multiplot
