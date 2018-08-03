@@ -349,21 +349,51 @@ main (int argc, char *argv[])
   bool fixedTti = false;
   unsigned symPerSf = 24;
   double sfPeriod = 100.0;
+
   unsigned scenario = 1;
   double ueHeight = 1.75;
   double simTime;
+  bool useTrace=false;
   double nXrooms = 5, nYrooms = 5;
   std::string netanim_scenario;
   std::string gnuplot_scenario_buildings, gnuplot_scenario_enbs, gnuplot_scenario_ues;
-  //double UeFinaly;
-
   bool print = true;
 
   // Command line arguments
   CommandLine cmd;
   cmd.AddValue ("scenario", "Custom made scenario types:\n1- A general street scenario in a 160x80 map,\n2- A general street scenario in a 200x120 map,\n3- One mmWave and one LTE with two sources of blockage (100x15 map),\n4- One mmWave and one LTE with one source of blockage (100x15 map),\n5- Two mmWaves and one LTE two sources of blockage (100x15 map),\n6- Two mmWaves and one LTE one source of blockage (100x15 map),\n7- Corner turn case in 200x120 map.", scenario);
+  cmd.AddValue ("useTrace", "By default false. Set true to use user-generated trace files.\nOnly available for scenarios 1 and 2.", useTrace);
   cmd.Parse(argc, argv);
   NS_LOG_UNCOND("The simulation scenario is " << scenario << ".");
+
+  NodeContainer ueNodes;
+  /********** Use NS-2 Mobility Helper to use trace file in mobility **********/
+   if (useTrace){
+	  switch(scenario)
+	  {
+		case 1:
+			break;
+		case 2:
+		{
+			ueNodes.Create(7);
+			Ns2MobilityHelper ns2 = Ns2MobilityHelper ("scratch/manhattan-grid.ns_movements");
+			ns2.Install ();
+			NS_LOG_UNCOND("Trace Mobility is installed.");
+			break;
+		}
+		case 3:
+			break;
+		case 4:
+			break;
+		case 5:
+			break;
+		case 6:
+			break;
+		case 7:
+			break;
+	  }
+   }
+   /********** Use NS-2 Mobility Helper to use trace file in mobility **********/
 
   UintegerValue uintegerValue;
   BooleanValue booleanValue;
@@ -641,7 +671,7 @@ main (int argc, char *argv[])
   /********** create LTE, mmWave eNB nodes and UE node **********/
   NodeContainer lteEnbNodes;
   NodeContainer mmWaveEnbNodes;
-  NodeContainer ueNodes;
+
   /********** create LTE, mmWave eNB nodes and UE node **********/
 
   /********** Create Buildings **********/
@@ -663,176 +693,181 @@ main (int argc, char *argv[])
   switch (scenario)
   	{
 
-  		case 1:
-  		{
-  			// Case 1: A general street scenario in a 160x80 map
-  			// Reference: End-to-End Simulation of 5G mmWave Networks
-  			netanim_scenario = "scenario-1-overview.xml";
-  			gnuplot_scenario_buildings = "scenario-1-buildings.txt";
+		case 1:
+		{
+			// Case 1: A general street scenario in a 160x80 map
+			// Reference: End-to-End Simulation of 5G mmWave Networks
+			netanim_scenario = "scenario-1-overview.xml";
+			gnuplot_scenario_buildings = "scenario-1-buildings.txt";
 			gnuplot_scenario_enbs = "scenario-1-enbs.txt";
 			gnuplot_scenario_ues = "scenario-1-ues.txt";
 
-  			/********** network initializations**********/
-  			lteEnbNodes.Create(1);
-  			mmWaveEnbNodes.Create(2);
-  			ueNodes.Create(1);
-  			/********** network initializations**********/
+			/********** network initializations**********/
+			lteEnbNodes.Create(1);
+			mmWaveEnbNodes.Create(2);
+			/********** network initializations**********/
 
-  			/********** Set positions **********/
-  			mmWaveEnbPos->Add(Vector(50, 65, 3));
-  			mmWaveEnbPos->Add(Vector(150, 65, 3));
-  			lteEnbPos->Add(Vector(100, 40, 3));
-  			uePos->Add(Vector(50, 5, ueHeight));
-  			// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
-			Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
+			/********** Set positions **********/
+			mmWaveEnbPos->Add(Vector(50, 65, 3));
+			mmWaveEnbPos->Add(Vector(150, 65, 3));
+			lteEnbPos->Add(Vector(100, 40, 3));
+			if (!useTrace){
+				ueNodes.Create(1);
+				uePos->Add(Vector(50, 5, ueHeight));
+				// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
+				Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
+			}
 			simTime = 10;
-  			/********** Set positions **********/
+			/********** Set positions **********/
 
-  			Ptr < Building > building1;
-  			building1 = Create<Building> ();
-  			building1->SetBoundaries (Box (55.0,60.0,
-  										  15.0, 25.0,
-  										  0.0, zHeight));
+			Ptr < Building > building1;
+			building1 = Create<Building> ();
+			building1->SetBoundaries (Box (55.0,60.0,
+										  15.0, 25.0,
+										  0.0, zHeight));
 			building1->SetNRoomsX (nXrooms);
 			building1->SetNRoomsY (nYrooms);
 			building1->SetNFloors (nFloors);
-  		    //building1->SetNFloors (1);
+			//building1->SetNFloors (1);
 
-  			Ptr < Building > building2;
-  			building2 = Create<Building> ();
-  			building2->SetBoundaries (Box (80.0,95.0,
-  			  							   20.0, 35.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building2;
+			building2 = Create<Building> ();
+			building2->SetBoundaries (Box (80.0,95.0,
+										   20.0, 35.0,
+										   0.0, zHeight));
 			building2->SetNRoomsX (nXrooms);
 			building2->SetNRoomsY (nYrooms);
 			building2->SetNFloors (nFloors);
 
-  			Ptr < Building > building3;
-  			building3 = Create<Building> ();
-  			building3->SetBoundaries (Box (70.0,80.0,
-  			  							   40.0, 45.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building3;
+			building3 = Create<Building> ();
+			building3->SetBoundaries (Box (70.0,80.0,
+										   40.0, 45.0,
+										   0.0, zHeight));
 			building3->SetNRoomsX (nXrooms);
 			building3->SetNRoomsY (nYrooms);
 			building3->SetNFloors (nFloors);
 
-  			Ptr < Building > building4;
-  			building4 = Create<Building> ();
-  			building4->SetBoundaries (Box (105.0,110.0,
-  			  							   35.0, 50.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building4;
+			building4 = Create<Building> ();
+			building4->SetBoundaries (Box (105.0,110.0,
+										   35.0, 50.0,
+										   0.0, zHeight));
 			building4->SetNRoomsX (nXrooms);
 			building4->SetNRoomsY (nYrooms);
 			building4->SetNFloors (nFloors);
 
-  			Ptr < Building > building5;
-  			building5 = Create<Building> ();
-  			building5->SetBoundaries (Box (105.0,115.0,
-  			  							   10.0, 20.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building5;
+			building5 = Create<Building> ();
+			building5->SetBoundaries (Box (105.0,115.0,
+										   10.0, 20.0,
+										   0.0, zHeight));
 			building5->SetNRoomsX (nXrooms);
 			building5->SetNRoomsY (nYrooms);
 			building5->SetNFloors (nFloors);
 
-  			Ptr < Building > building6;
-  			building6 = Create<Building> ();
-  			building6->SetBoundaries (Box (130.0,145.0,
-  			  							   15.0, 20.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building6;
+			building6 = Create<Building> ();
+			building6->SetBoundaries (Box (130.0,145.0,
+										   15.0, 20.0,
+										   0.0, zHeight));
 			building6->SetNRoomsX (nXrooms);
 			building6->SetNRoomsY (nYrooms);
 			building6->SetNFloors (nFloors);
 
-  			Ptr < Building > building7;
-  			building7 = Create<Building> ();
-  			building7->SetBoundaries (Box (150.0,155.0,
-  			  							   30.0, 35.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building7;
+			building7 = Create<Building> ();
+			building7->SetBoundaries (Box (150.0,155.0,
+										   30.0, 35.0,
+										   0.0, zHeight));
 			building7->SetNRoomsX (nXrooms);
 			building7->SetNRoomsY (nYrooms);
 			building7->SetNFloors (nFloors);
 
-  			Ptr < Building > building8;
-  			building8 = Create<Building> ();
-  			building8->SetBoundaries (Box (135.0,155.0,
-  			  							   25.0, 45.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building8;
+			building8 = Create<Building> ();
+			building8->SetBoundaries (Box (135.0,155.0,
+										   25.0, 45.0,
+										   0.0, zHeight));
 			building8->SetNRoomsX (nXrooms);
 			building8->SetNRoomsY (nYrooms);
 			building8->SetNFloors (nFloors);
 
-  			break;
-  		}
-  		case 2:
-  		{
-  			// Case 2: A general street scenario in a 200x120 map
-  			// Reference: Improved Handover through Dual COnnectivity in 5G mmWave Mobile Networks
-  			netanim_scenario = "scenario-2-overview.xml";
-  			gnuplot_scenario_buildings = "scenario-2-buildings.txt";
+			break;
+		}
+		case 2:
+		{
+			// Case 2: A general street scenario in a 200x120 map
+			// Reference: Improved Handover through Dual COnnectivity in 5G mmWave Mobile Networks
+			netanim_scenario = "scenario-2-overview.xml";
+			gnuplot_scenario_buildings = "scenario-2-buildings.txt";
 			gnuplot_scenario_enbs = "scenario-2-enbs.txt";
 			gnuplot_scenario_ues = "scenario-2-ues.txt";
 
-  			/********** network initializations**********/
-  			lteEnbNodes.Create(1);
-  			mmWaveEnbNodes.Create(2);
-  			ueNodes.Create(1);
-  			/********** network initializations**********/
+			/********** network initializations**********/
+			lteEnbNodes.Create(1);
+			mmWaveEnbNodes.Create(2);
 
-  			/********** Set positions **********/
-  			mmWaveEnbPos->Add(Vector(0, 50, 3));
-  			mmWaveEnbPos->Add(Vector(100, 100, 3));
-  			lteEnbPos->Add(Vector(100, 100, 3));
-  			uePos->Add(Vector(0, 0, ueHeight));
-			// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
-			Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
-			// Go in (+) y direction for 8 seconds = 80m
-			Simulator::Schedule(Seconds(10), &ChangeSpeed, ueNodes.Get(0), Vector(0, ueSpeed, 0));
-			// Go in (+) x direction for 9 seconds = 90m
-			Simulator::Schedule(Seconds(18), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
-			// Go in (-) y direction for 8 seconds = 80m
-			Simulator::Schedule(Seconds(27), &ChangeSpeed, ueNodes.Get(0), Vector(0, -ueSpeed, 0));
+			/********** network initializations**********/
+
+			/********** Set positions **********/
+			mmWaveEnbPos->Add(Vector(0, 50, 3));
+			mmWaveEnbPos->Add(Vector(100, 100, 3));
+			lteEnbPos->Add(Vector(100, 100, 3));
+			if (!useTrace){
+				ueNodes.Create(1);
+				uePos->Add(Vector(0, 0, ueHeight));
+				// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
+				Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
+				// Go in (+) y direction for 8 seconds = 80m
+				Simulator::Schedule(Seconds(10), &ChangeSpeed, ueNodes.Get(0), Vector(0, ueSpeed, 0));
+				// Go in (+) x direction for 9 seconds = 90m
+				Simulator::Schedule(Seconds(18), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
+				// Go in (-) y direction for 8 seconds = 80m
+				Simulator::Schedule(Seconds(27), &ChangeSpeed, ueNodes.Get(0), Vector(0, -ueSpeed, 0));
+			}
 			simTime = 36;
-  			/********** Set positions **********/
+			/********** Set positions **********/
 
-  			Ptr < Building > building1;
-  			building1 = Create<Building> ();
-  			building1->SetBoundaries (Box (40.0,50.0,
-  										  80.0, 110.0,
-  										  0.0, zHeight));
+			Ptr < Building > building1;
+			building1 = Create<Building> ();
+			building1->SetBoundaries (Box (40.0,50.0,
+										  80.0, 110.0,
+										  0.0, zHeight));
 			building1->SetNRoomsX (nXrooms);
 			building1->SetNRoomsY (nYrooms);
 			building1->SetNFloors (nFloors);
-  		    //building1->SetNFloors (1);
+			//building1->SetNFloors (1);
 
-  			Ptr < Building > building2;
-  			building2 = Create<Building> ();
-  			building2->SetBoundaries (Box (50.0,125.0,
-  			  							   60.0, 90.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building2;
+			building2 = Create<Building> ();
+			building2->SetBoundaries (Box (50.0,125.0,
+										   60.0, 90.0,
+										   0.0, zHeight));
 			building2->SetNRoomsX (nXrooms);
 			building2->SetNRoomsY (nYrooms);
 			building2->SetNFloors (nFloors);
 
-  			Ptr < Building > building3;
-  			building3 = Create<Building> ();
-  			building3->SetBoundaries (Box (80.0,180.0,
-  			  							   10.0, 40.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building3;
+			building3 = Create<Building> ();
+			building3->SetBoundaries (Box (80.0,180.0,
+										   10.0, 40.0,
+										   0.0, zHeight));
 			building3->SetNRoomsX (nXrooms);
 			building3->SetNRoomsY (nYrooms);
 			building3->SetNFloors (nFloors);
 
-  			Ptr < Building > building4;
-  			building4 = Create<Building> ();
-  			building4->SetBoundaries (Box (160.0,180.0,
-  			  							   60.0, 90.0,
-  			  							   0.0, zHeight));
+			Ptr < Building > building4;
+			building4 = Create<Building> ();
+			building4->SetBoundaries (Box (160.0,180.0,
+										   60.0, 90.0,
+										   0.0, zHeight));
 			building4->SetNRoomsX (nXrooms);
 			building4->SetNRoomsY (nYrooms);
 			building4->SetNFloors (nFloors);
 
-  			break;
-  		}
+		break;
+		}
   		case 3:
 		{
 			// Case 3: One mmWave and one LTE with two sources of blockage
@@ -1074,12 +1109,15 @@ main (int argc, char *argv[])
   mmWaveEnbMobility.Install (mmWaveEnbNodes);
   BuildingsHelper::Install (mmWaveEnbNodes);
 
+  if(!useTrace){
   MobilityHelper uemobility;
   uemobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   uemobility.SetPositionAllocator(uePos);
   uemobility.Install (ueNodes);
-  BuildingsHelper::Install (ueNodes);
   ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, 0, 0));
+  }
+  BuildingsHelper::Install (ueNodes);
+
   /********** Install Mobility Models and Initial positions **********/
 
   // Install mmWave, lte, mc Devices to the nodes
@@ -1167,22 +1205,19 @@ main (int argc, char *argv[])
       }
   }
 
-
-
   // Start applications
   NS_LOG_UNCOND("transientDuration " << transientDuration << " simTime " << simTime);
   serverApps.Start (Seconds(transientDuration));
   clientApps.Start (Seconds(transientDuration));
   clientApps.Stop (Seconds(simTime - 1));
 
-
   // stop UE movement after Seconds(0.5)
   Simulator::Schedule(Seconds(simTime + 0.5), &ChangeSpeed, ueNodes.Get(0), Vector(0, 0, 0));
 
   double numPrints = 10;
-  for(int i = 0; i < numPrints; i++)
+  for(int i = 0; i < simTime-numPrints; i++)
   {
-   Simulator::Schedule(Seconds(i*simTime/numPrints), &PrintPosition, ueNodes.Get(0)); 
+   Simulator::Schedule(Seconds(i), &PrintPosition, ueNodes.Get(0));
   }
 
   BuildingsHelper::MakeMobilityModelConsistent ();
