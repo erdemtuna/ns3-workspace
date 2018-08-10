@@ -36,14 +36,14 @@
 #include <ns3/lte-ue-net-device.h>
 #include "ns3/netanim-module.h"
 #include "ns3/lte-helper.h"
+#include "ns3/flow-monitor-helper.h"
 #include "ns3/radio-environment-map-helper.h"
-
+#include "ns3/flow-monitor-module.h"
 
 #include <iostream>
 #include <ctime>
 #include <stdlib.h>
 #include <list>
-
 
 using namespace ns3;
 
@@ -260,7 +260,7 @@ void
 PrintPosition(Ptr<Node> node)
 {
   Ptr<MobilityModel> model = node->GetObject<MobilityModel> ();
-  NS_LOG_UNCOND("Position = " << model->GetPosition() << " at time " << Simulator::Now().GetSeconds());
+  NS_LOG_UNCOND( "UE " << " Position = " << model->GetPosition() << " at time " << Simulator::Now().GetSeconds());
 }
 
 void 
@@ -293,6 +293,38 @@ OverlapWithAnyPrevious(Box box, std::list<Box> m_previousBlocks)
   return false;
 }
 
+void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon)
+  {
+    //Time currentSimTime = Simulator::Now();
+
+    std::map<FlowId, FlowMonitor::FlowStats> flowStats = flowMon->GetFlowStats();
+
+    Ptr<Ipv4FlowClassifier> classing = DynamicCast<Ipv4FlowClassifier> (fmhelper->GetClassifier());
+    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator stats = flowStats.begin (); stats != flowStats.end (); ++stats){
+
+      Ipv4FlowClassifier::FiveTuple fiveTuple = classing->FindFlow (stats->first);
+      std::cout << "Flow ID     : " << stats->first << " ; " << fiveTuple.sourceAddress << " -----> " << fiveTuple.destinationAddress << std::endl;
+//      std::cout<<"Tx Packets = " << stats->second.txPackets<<std::endl;
+//      std::cout<<"Rx Packets = " << stats->second.rxPackets<<std::endl;
+      std::cout << "Time    : " << Simulator::Now().GetSeconds () << std::endl;
+
+      std::cout << "Duration    : " << stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds() << std::endl;
+
+      std::cout << "Last Received Packet  : " << stats->second.timeLastRxPacket.GetSeconds() << " Seconds" << std::endl;
+
+      std::cout << "Throughput: " << stats->second.rxBytes * 8.0 / (stats->second.timeLastRxPacket.GetSeconds()-stats->second.timeFirstTxPacket.GetSeconds())/(1024*1024)  << " Mbps" << std::endl;
+
+      //cout << "Sim time :" << currentSimTime << endl;
+      std::cout << "---------------------------------------------------------------------------\n" << std::endl;
+
+      //rxPackets = stats->second.rxBytes
+    }
+
+    // Make "ThroughputMonitor" to be called every 0.5 seconds.
+    Simulator::Schedule(Seconds(0.5),&ThroughputMonitor, fmhelper, flowMon);
+
+  }
+
 
 static ns3::GlobalValue g_mmw1DistFromMainStreet("mmw1Dist", "Distance from the main street of the first MmWaveEnb",
     ns3::UintegerValue(50), ns3::MakeUintegerChecker<uint32_t>());
@@ -307,7 +339,7 @@ static ns3::GlobalValue g_interPckInterval("interPckInterval", "Interarrival tim
 static ns3::GlobalValue g_bufferSize("bufferSize", "RLC tx buffer size (MB)",
     ns3::UintegerValue(20), ns3::MakeUintegerChecker<uint32_t>());
 static ns3::GlobalValue g_x2Latency("x2Latency", "Latency on X2 interface (us)",
-    ns3::DoubleValue(500), ns3::MakeDoubleChecker<double>());
+    ns3::DoubleValue(1000), ns3::MakeDoubleChecker<double>());
 static ns3::GlobalValue g_mmeLatency("mmeLatency", "Latency on MME interface (us)",
     ns3::DoubleValue(10000), ns3::MakeDoubleChecker<double>());
 static ns3::GlobalValue g_mobileUeSpeed("mobileSpeed", "The speed of the UE (m/s)",
@@ -340,16 +372,20 @@ main (int argc, char *argv[])
 
   LogComponentEnable ("A2A4RsrqHandoverAlgorithm", logLevel1);
   LogComponentEnable ("EpcHelper", logLevel1);
-  LogComponentEnable ("LteEnbRrc", logLevel1);
+  //LogComponentEnable ("LteEnbRrc", logLevel1);
   LogComponentEnable ("MmWaveHelper", logLevel1);
   //LogComponentEnable ("MmWaveLteRrcProtocolReal", logLevel1);
   LogComponentEnable ("MmWaveUeNetDevice", logLevel1);
+  //LogComponentEnable ("MmWave3gppChannel", logLevel1);
+  LogComponentEnable ("MmWaveBeamforming", logLevel1);
+
   //LogComponentEnable ("MmWaveBearerStatsConnector", logLevel);
   bool harqEnabled = true;
   bool fixedTti = false;
   unsigned symPerSf = 24;
   double sfPeriod = 100.0;
 
+  int numOfmmWaveEnbs, numOfLteEnbs, numOfUes;
   unsigned scenario = 1;
   double ueHeight = 1.75;
   double simTime;
@@ -359,10 +395,15 @@ main (int argc, char *argv[])
   std::string gnuplot_scenario_buildings, gnuplot_scenario_enbs, gnuplot_scenario_ues;
   bool print = true;
 
+  bool dl = false;
+  bool ul = false;
+
   // Command line arguments
   CommandLine cmd;
   cmd.AddValue ("scenario", "Custom made scenario types:\n1- A general street scenario in a 160x80 map,\n2- A general street scenario in a 200x120 map,\n3- One mmWave and one LTE with two sources of blockage (100x15 map),\n4- One mmWave and one LTE with one source of blockage (100x15 map),\n5- Two mmWaves and one LTE two sources of blockage (100x15 map),\n6- Two mmWaves and one LTE one source of blockage (100x15 map),\n7- Corner turn case in 200x120 map.", scenario);
   cmd.AddValue ("useTrace", "By default false. Set true to use user-generated trace files.\nOnly available for scenarios 1 and 2.", useTrace);
+  cmd.AddValue ("dl", "Send downlink UDP packets. By default false", dl);
+  cmd.AddValue ("ul", "Send uplink UDP packets. By default false", ul);
   cmd.Parse(argc, argv);
   NS_LOG_UNCOND("The simulation scenario is " << scenario << ".");
 
@@ -375,7 +416,8 @@ main (int argc, char *argv[])
 			break;
 		case 2:
 		{
-			ueNodes.Create(7);
+			numOfUes = 7;
+			ueNodes.Create(numOfUes);
 			Ns2MobilityHelper ns2 = Ns2MobilityHelper ("scratch/manhattan-grid.ns_movements");
 			ns2.Install ();
 			NS_LOG_UNCOND("Trace Mobility is installed.");
@@ -454,8 +496,6 @@ main (int argc, char *argv[])
   double ueSpeed = doubleValue.Get();
   /********** params for RLC, X2, and mobileSpeed **********/
 
-
-
   NS_LOG_UNCOND("fastSwitching " << fastSwitching << "-" << " rlcAmEnabled " << rlcAmEnabled << "-" <<  " bufferSize " << bufferSize << "-" <<  " interPacketInterval " <<
       interPacketInterval << "-" <<  " x2Latency " << x2Latency << "-" << " mmeLatency " << mmeLatency << "-" << " mobileSpeed " << ueSpeed);
 
@@ -512,29 +552,6 @@ main (int argc, char *argv[])
   std::string time_str(buffer);
 
   /********** Exporting Output Files **********/
-  Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(rlcAmEnabled));
-  Config::SetDefault ("ns3::MmWaveHelper::HarqEnabled", BooleanValue(harqEnabled));
-  Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::HarqEnabled", BooleanValue(harqEnabled));
-  Config::SetDefault ("ns3::MmWaveFlexTtiMaxWeightMacScheduler::HarqEnabled", BooleanValue(harqEnabled));
-  Config::SetDefault ("ns3::MmWaveFlexTtiMaxWeightMacScheduler::FixedTti", BooleanValue(fixedTti));
-  Config::SetDefault ("ns3::MmWaveFlexTtiMaxWeightMacScheduler::SymPerSlot", UintegerValue(6));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::ResourceBlockNum", UintegerValue(1));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::ChunkPerRB", UintegerValue(72));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::SymbolsPerSubframe", UintegerValue(symPerSf));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::SubframePeriod", DoubleValue(sfPeriod));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::TbDecodeLatency", UintegerValue(200.0));
-  Config::SetDefault ("ns3::MmWavePhyMacCommon::NumHarqProcess", UintegerValue(100));
-  Config::SetDefault ("ns3::MmWaveBeamforming::LongTermUpdatePeriod", TimeValue (MilliSeconds (100.0)));
-  Config::SetDefault ("ns3::LteEnbRrc::SystemInformationPeriodicity", TimeValue (MilliSeconds (5.0)));
-  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
-  Config::SetDefault ("ns3::LteRlcUmLowLat::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
-  Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
-  Config::SetDefault ("ns3::LteEnbRrc::FirstSibTime", UintegerValue (2));
-  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::X2LinkDelay", TimeValue (MicroSeconds(x2Latency)));
-  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::X2LinkDataRate", DataRateValue(DataRate ("1000Gb/s")));
-  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::X2LinkMtu",  UintegerValue(10000));
-  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::S1uLinkDelay", TimeValue (MicroSeconds(1000)));
-  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::S1apLinkDelay", TimeValue (MicroSeconds(mmeLatency)));
   Config::SetDefault ("ns3::McStatsCalculator::MmWaveOutputFilename", StringValue                 (path + version + mmWaveOutName + "_" + seedSetStr + "_" + runSetStr + "_" + time_str + extension));
   Config::SetDefault ("ns3::McStatsCalculator::LteOutputFilename", StringValue                    (path + version + lteOutName    + "_" + seedSetStr + "_" + runSetStr + "_" + time_str + extension));
   Config::SetDefault ("ns3::McStatsCalculator::CellIdInTimeOutputFilename", StringValue           (path + version + cellIdInTimeOutName    + "_" + seedSetStr + "_" + runSetStr + "_" + time_str + extension));
@@ -555,6 +572,38 @@ main (int argc, char *argv[])
   //Config::SetDefault ("ns3::UdpServer::ReceivedSnFilename", StringValue(path + version + "ReceivedSn" +  "_" + seedSetStr + "_" + runSetStr + "_" + time_str + extension));
   Config::SetDefault ("ns3::LteRlcAm::BufferSizeFilename", StringValue(path + version + "RlcAmBufferSize" +  "_" + seedSetStr + "_" + runSetStr + "_" + time_str + extension));
   /********** Exporting Output Files **********/
+
+  Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(rlcAmEnabled));
+  Config::SetDefault ("ns3::MmWaveHelper::HarqEnabled", BooleanValue(harqEnabled));
+  Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::HarqEnabled", BooleanValue(harqEnabled));
+  Config::SetDefault ("ns3::MmWaveFlexTtiMaxWeightMacScheduler::HarqEnabled", BooleanValue(harqEnabled));
+  Config::SetDefault ("ns3::MmWaveFlexTtiMaxWeightMacScheduler::FixedTti", BooleanValue(fixedTti));
+  Config::SetDefault ("ns3::MmWaveFlexTtiMaxWeightMacScheduler::SymPerSlot", UintegerValue(6));
+
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::ResourceBlockNum", UintegerValue(1));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::CtrlSymbols", UintegerValue(24));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::SubframePerFrame", UintegerValue(10));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::SymbolPeriod", DoubleValue (4.16));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::GuardPeriod", DoubleValue (4.16));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::ChunkPerRB", UintegerValue(72));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::SymbolsPerSubframe", UintegerValue(symPerSf));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::SubframePeriod", DoubleValue(sfPeriod));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::TbDecodeLatency", UintegerValue(200.0));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::NumHarqProcess", UintegerValue(100));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::SubcarriersPerChunk", UintegerValue(48));
+  Config::SetDefault ("ns3::MmWavePhyMacCommon::CenterFreq", DoubleValue (28e9));
+
+  Config::SetDefault ("ns3::MmWaveBeamforming::LongTermUpdatePeriod", TimeValue (MilliSeconds (100.0)));
+  Config::SetDefault ("ns3::LteEnbRrc::SystemInformationPeriodicity", TimeValue (MilliSeconds (5.0)));
+  Config::SetDefault ("ns3::LteRlcAm::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
+  Config::SetDefault ("ns3::LteRlcUmLowLat::ReportBufferStatusTimer", TimeValue(MicroSeconds(100.0)));
+  Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (320));
+  Config::SetDefault ("ns3::LteEnbRrc::FirstSibTime", UintegerValue (2));
+  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::X2LinkDelay", TimeValue (MicroSeconds(x2Latency)));
+  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::X2LinkDataRate", DataRateValue(DataRate ("1000Gb/s")));
+  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::X2LinkMtu",  UintegerValue(10000));
+  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::S1uLinkDelay", TimeValue (MicroSeconds(1000)));
+  Config::SetDefault ("ns3::MmWavePointToPointEpcHelper::S1apLinkDelay", TimeValue (MicroSeconds(mmeLatency)));
 
   Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue (bufferSize * 1024 * 1024));
   Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue (bufferSize * 1024 * 1024));
@@ -582,6 +631,7 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWaveEnbPhy::UpdateSinrEstimatePeriod", IntegerValue (ReportTablePeriodicity));
   Config::SetDefault ("ns3::MmWaveEnbPhy::Transient", IntegerValue (vectorTransient));
   Config::SetDefault ("ns3::MmWaveEnbPhy::NoiseAndFilter", BooleanValue(noiseAndFilter));
+  Config::SetDefault ("ns3::MmWaveEnbPhy::NoiseFigure", DoubleValue (5.0));
 
   GlobalValue::GetValueByName("lteUplink", booleanValue);
   bool lteUplink = booleanValue.Get();
@@ -597,8 +647,10 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWave3gppBuildingsPropagationLossModel::UpdateCondition", BooleanValue(true)); // enable or disable the LOS/NLOS update when the UE moves
   Config::SetDefault ("ns3::AntennaArrayModel::AntennaHorizontalSpacing", DoubleValue(0.5));
   Config::SetDefault ("ns3::AntennaArrayModel::AntennaVerticalSpacing", DoubleValue(0.5));
-  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(100))); // interval after which the channel for a moving user is updated, 
+  Config::SetDefault ("ns3::MmWave3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(100))); // interval after which the channel for a moving user is updated,
                                                                                        // with spatial consistency procedure. If 0, spatial consistency is not used
+  Config::SetDefault ("ns3::MmWaveChannelMatrix::NumSubbandPerRB", UintegerValue (72));
+  Config::SetDefault ("ns3::MmWaveChannelMatrix::ChunkWidth", DoubleValue (13.889e6));
   Config::SetDefault ("ns3::MmWave3gppChannel::CellScan", BooleanValue(false)); // Set true to use cell scanning method, false to use the default power method.
   Config::SetDefault ("ns3::MmWave3gppChannel::Blockage", BooleanValue(true)); // use blockage or not
   Config::SetDefault ("ns3::MmWave3gppChannel::PortraitMode", BooleanValue(true)); // use blockage model with UT in portrait mode
@@ -671,7 +723,6 @@ main (int argc, char *argv[])
   /********** create LTE, mmWave eNB nodes and UE node **********/
   NodeContainer lteEnbNodes;
   NodeContainer mmWaveEnbNodes;
-
   /********** create LTE, mmWave eNB nodes and UE node **********/
 
   /********** Create Buildings **********/
@@ -703,8 +754,10 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-1-ues.txt";
 
 			/********** network initializations**********/
-			lteEnbNodes.Create(1);
-			mmWaveEnbNodes.Create(2);
+			numOfmmWaveEnbs = 2;
+			numOfLteEnbs = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
@@ -712,7 +765,8 @@ main (int argc, char *argv[])
 			mmWaveEnbPos->Add(Vector(150, 65, 3));
 			lteEnbPos->Add(Vector(100, 40, 3));
 			if (!useTrace){
-				ueNodes.Create(1);
+				numOfUes = 1;
+				ueNodes.Create(numOfUes);
 				uePos->Add(Vector(50, 5, ueHeight));
 				// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
 				Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
@@ -805,9 +859,10 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-2-ues.txt";
 
 			/********** network initializations**********/
-			lteEnbNodes.Create(1);
-			mmWaveEnbNodes.Create(2);
-
+			numOfmmWaveEnbs = 2;
+			numOfLteEnbs = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
@@ -815,7 +870,8 @@ main (int argc, char *argv[])
 			mmWaveEnbPos->Add(Vector(100, 100, 3));
 			lteEnbPos->Add(Vector(100, 100, 3));
 			if (!useTrace){
-				ueNodes.Create(1);
+				numOfUes = 1;
+				ueNodes.Create(numOfUes);
 				uePos->Add(Vector(0, 0, ueHeight));
 				// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
 				Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
@@ -879,9 +935,12 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-3-ues.txt";
 
 			/********** network initializations**********/
-			lteEnbNodes.Create(1);
-			ueNodes.Create(1);
-			mmWaveEnbNodes.Create(1);
+			numOfmmWaveEnbs = 1;
+			numOfLteEnbs = 1;
+			numOfUes = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			ueNodes.Create(numOfUes);
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
@@ -962,9 +1021,12 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-5-ues.txt";
 
 			/********** network initializations**********/
-			lteEnbNodes.Create(1);
-			ueNodes.Create(1);
-			mmWaveEnbNodes.Create(2);
+			numOfmmWaveEnbs = 2;
+			numOfLteEnbs = 1;
+			numOfUes = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			ueNodes.Create(numOfUes);
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
@@ -1008,9 +1070,12 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-6-ues.txt";
 
 			/********** network initializations**********/
-			lteEnbNodes.Create(1);
-			mmWaveEnbNodes.Create(2);
-			ueNodes.Create(1);
+			numOfmmWaveEnbs = 2;
+			numOfLteEnbs = 1;
+			numOfUes = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			ueNodes.Create(numOfUes);
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
@@ -1045,9 +1110,12 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-7-ues.txt";
 
 			/********** network initializations**********/
-			lteEnbNodes.Create(1);
-			mmWaveEnbNodes.Create(3);
-			ueNodes.Create(1);
+			numOfmmWaveEnbs = 3;
+			numOfLteEnbs = 1;
+			numOfUes = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			ueNodes.Create(numOfUes);
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
@@ -1117,7 +1185,6 @@ main (int argc, char *argv[])
   ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (0, 0, 0));
   }
   BuildingsHelper::Install (ueNodes);
-
   /********** Install Mobility Models and Initial positions **********/
 
   // Install mmWave, lte, mc Devices to the nodes
@@ -1153,10 +1220,6 @@ main (int argc, char *argv[])
   // Add X2 interfaces
   mmwaveHelper->AddX2Interface (lteEnbNodes, mmWaveEnbNodes);
 
-  //
-
-  //
-
   // Manual attachment
   if(fastSwitching)
   {
@@ -1173,8 +1236,6 @@ main (int argc, char *argv[])
   uint16_t ulPort = 2000;
   ApplicationContainer clientApps;
   ApplicationContainer serverApps;
-  bool dl = 0;
-  bool ul = 0;
 
   for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
   {
@@ -1214,11 +1275,15 @@ main (int argc, char *argv[])
   // stop UE movement after Seconds(0.5)
   Simulator::Schedule(Seconds(simTime + 0.5), &ChangeSpeed, ueNodes.Get(0), Vector(0, 0, 0));
 
-  double numPrints = 10;
-  for(int i = 0; i < simTime-numPrints; i++)
-  {
-   Simulator::Schedule(Seconds(i), &PrintPosition, ueNodes.Get(0));
+  /********** Print UE positions **********/
+  for(int n=0; n < numOfUes; n++){
+	  for(int i = 0; i < simTime; i++)
+	    {
+	     Simulator::Schedule(Seconds(i), &PrintPosition, ueNodes.Get(n));
+	    }
   }
+  /********** Print UE positions **********/
+
 
   BuildingsHelper::MakeMobilityModelConsistent ();
 
@@ -1245,9 +1310,34 @@ main (int argc, char *argv[])
     PrintGnuplottableUeListToFile(gnuplot_scenario_ues);
   }
 
+  /********** Flow monitor, not necessary **********/
+//  Ptr<FlowMonitor> flowMonitor;
+//  FlowMonitorHelper flowHelper;
+//  flowMonitor = flowHelper.InstallAll();
+  /********** Flow monitor, not necessary **********/
+
+  /********** Flow monitor, not necessary **********/
+  //Ptr<FlowMonitor> monitor = flowman.Install(wifiStaNodes);
+  FlowMonitorHelper flowman;
+  Ptr<FlowMonitor> monitor = flowman.InstallAll();
+  double times = 0.0;
+  while(times <= (simTime*1000))
+  {
+	//Simulator::Schedule (MilliSeconds(times), &ThroughputMonitor, &flowman, monitor);
+	times = times +50.0 ;
+  }
+  /********** Flow monitor, not necessary **********/
+
   Simulator::Stop(Seconds(simTime+1));
+
+  /********** NetAnim Setup **********/
   AnimationInterface anim(netanim_scenario);
+  anim.SetMaxPktsPerTraceFile(100e+9);
+  /********** NetAnim Setup **********/
+
   Simulator::Run();
+
+//  flowMonitor->SerializeToXmlFile("scenario-2-flowMonitor.xml", true, true);
 
   Simulator::Destroy();
   return 0;
