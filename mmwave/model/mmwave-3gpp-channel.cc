@@ -723,7 +723,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 		}
 		//m_mmWaveOutFile.open(m_mmWaveOutputFilename.c_str());
 		NS_LOG_DEBUG ("****** DL BF gain == " << Sum (bfGain)/nbands << " RX PSD " << Sum(*rxPsd)/nbands); // print avg bf gain
-		m_mmWaveOutFile << Simulator::Now ().GetNanoSeconds () / 1.0e9 << " "<< "DL"<< " "<<(Sum (bfGain)/nbands) <<std::endl;
+		m_mmWaveOutFile << "DL"<< " "<<(Sum (bfGain)/nbands) << " " << (Sum(*rxPsd)/nbands) << " " <<(Sum(*txPsd)/nbands) <<std::endl;
 	}
 	else
 	{
@@ -734,7 +734,7 @@ MmWave3gppChannel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
 	    }
 		//m_mmWaveOutFile.open(m_mmWaveOutputFilename.c_str());
 		NS_LOG_DEBUG ("****** UL BF gain == " << Sum (bfGain)/nbands << " RX PSD " << Sum(*rxPsd)/nbands);
-		m_mmWaveOutFile << Simulator::Now ().GetNanoSeconds () / 1.0e9 << " "<< "UL"<< " "<<(Sum (bfGain)/nbands) <<std::endl;
+		m_mmWaveOutFile << "UL"<< " "<<(Sum (bfGain)/nbands) << " " <<(Sum(*rxPsd)/nbands) << " " <<(Sum(*txPsd)/nbands) << std::endl;
 	}
 	return bfPsd;
 }
@@ -914,6 +914,15 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
 	uint16_t iSubband = 0;
 	double slotTime = Simulator::Now ().GetSeconds ();
 	complexVector_t doppler;
+
+
+	if (!m_mmWaveOutFile.is_open ())
+		    {
+				m_mmWaveOutFile.open(m_mmWaveOutputFilename.c_str());
+		    }
+			//m_mmWaveOutFile.open(m_mmWaveOutputFilename.c_str());
+			m_mmWaveOutFile << Simulator::Now ().GetNanoSeconds () / 1.0e9 << " " << params->m_angle.at(ZOA_INDEX).at(numCluster/2) << " "<< params->m_angle.at(AOA_INDEX).at(numCluster/2) << " "<< params->m_angle.at(ZOD_INDEX).at(numCluster/2) <<  " "<< params->m_angle.at(AOD_INDEX).at(numCluster/2) <<" ";
+
 	for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
 	{
 		//cluster angle angle[direction][n],where, direction = 0(aoa), 1(zoa).

@@ -272,27 +272,6 @@ PrintLostUdpPackets(Ptr<UdpServer> app, std::string fileName)
   Simulator::Schedule(MilliSeconds(20), &PrintLostUdpPackets, app, fileName);
 }
 
-
-bool
-AreOverlapping(Box a, Box b)
-{
-  return !((a.xMin > b.xMax) || (b.xMin > a.xMax) || (a.yMin > b.yMax) || (b.yMin > a.yMax) );
-}
-
-
-bool
-OverlapWithAnyPrevious(Box box, std::list<Box> m_previousBlocks)
-{
-  for (std::list<Box>::iterator it = m_previousBlocks.begin(); it != m_previousBlocks.end(); ++it)
-  {
-    if (AreOverlapping(*it,box))
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
 void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon)
   {
     //Time currentSimTime = Simulator::Now();
@@ -325,7 +304,7 @@ void ThroughputMonitor (FlowMonitorHelper *fmhelper, Ptr<FlowMonitor> flowMon)
 
   }
 
-
+/********** Initializing Default Values **********/
 static ns3::GlobalValue g_mmw1DistFromMainStreet("mmw1Dist", "Distance from the main street of the first MmWaveEnb",
     ns3::UintegerValue(50), ns3::MakeUintegerChecker<uint32_t>());
 static ns3::GlobalValue g_mmw2DistFromMainStreet("mmw2Dist", "Distance from the main street of the second MmWaveEnb",
@@ -363,10 +342,13 @@ static ns3::GlobalValue g_outageThreshold("outageTh", "Outage threshold",
     ns3::DoubleValue(-5), ns3::MakeDoubleChecker<double>());
 static ns3::GlobalValue g_lteUplink("lteUplink", "If true, always use LTE for uplink signalling",
     ns3::BooleanValue(false), ns3::MakeBooleanChecker());
+/********** Initializing Default Values **********/
 
 int
 main (int argc, char *argv[])
 {
+
+	/********** LOGs of classes**********/
   LogLevel logLevel1 = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
   //LogLevel logLevel2 = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
 
@@ -374,17 +356,23 @@ main (int argc, char *argv[])
   LogComponentEnable ("EpcHelper", logLevel1);
   //LogComponentEnable ("LteEnbRrc", logLevel1);
   LogComponentEnable ("MmWaveHelper", logLevel1);
-  //LogComponentEnable ("MmWaveLteRrcProtocolReal", logLevel1);
+  //LogComponentEnable ("MmWaveEnbPhy", logLevel1);
+  //LogComponentEnable ("MmWaveEnbPhy", logLevel1);
+  //LogComponentEnable ("MmWaveUePhy", logLevel1);
   LogComponentEnable ("MmWaveUeNetDevice", logLevel1);
+  LogComponentEnable ("LteHelper", logLevel1);
   //LogComponentEnable ("MmWave3gppChannel", logLevel1);
-  LogComponentEnable ("MmWaveBeamforming", logLevel1);
+  //LogComponentEnable ("MmWave3gppPropagationLossModel", logLevel1);
+  LogComponentEnable ("BuildingsObstaclePropagationLossModel", logLevel1);
+  //LogComponentEnable ("MmWaveBeamforming", logLevel1);
+  /********** LOGs of classes**********/
 
-  //LogComponentEnable ("MmWaveBearerStatsConnector", logLevel);
   bool harqEnabled = true;
   bool fixedTti = false;
   unsigned symPerSf = 24;
   double sfPeriod = 100.0;
 
+  /********** ues, enbs, buildings **********/
   int numOfmmWaveEnbs, numOfLteEnbs, numOfUes;
   unsigned scenario = 1;
   double ueHeight = 1.75;
@@ -394,35 +382,50 @@ main (int argc, char *argv[])
   std::string netanim_scenario;
   std::string gnuplot_scenario_buildings, gnuplot_scenario_enbs, gnuplot_scenario_ues;
   bool print = true;
+  /********** ues, enbs, buildings **********/
 
   bool dl = false;
   bool ul = false;
 
-  // Command line arguments
+  /********** Command Line Arguments **********/
   CommandLine cmd;
   cmd.AddValue ("scenario", "Custom made scenario types:\n1- A general street scenario in a 160x80 map,\n2- A general street scenario in a 200x120 map,\n3- One mmWave and one LTE with two sources of blockage (100x15 map),\n4- One mmWave and one LTE with one source of blockage (100x15 map),\n5- Two mmWaves and one LTE two sources of blockage (100x15 map),\n6- Two mmWaves and one LTE one source of blockage (100x15 map),\n7- Corner turn case in 200x120 map.", scenario);
   cmd.AddValue ("useTrace", "By default false. Set true to use user-generated trace files.\nOnly available for scenarios 1 and 2.", useTrace);
   cmd.AddValue ("dl", "Send downlink UDP packets. By default false", dl);
   cmd.AddValue ("ul", "Send uplink UDP packets. By default false", ul);
   cmd.Parse(argc, argv);
+  /********** Command Line Arguments **********/
+
   NS_LOG_UNCOND("The simulation scenario is " << scenario << ".");
 
+  /********** Node Container Initializations **********/
   NodeContainer ueNodes;
+  NodeContainer mmWaveEnbNodes;
+  NodeContainer lteEnbNodes;
+  /********** Node Container Initializations **********/
+
   /********** Use NS-2 Mobility Helper to use trace file in mobility **********/
    if (useTrace){
 	  switch(scenario)
 	  {
 		case 1:
 			break;
+
+		/********** Using Trace Files for Scenario=2**********/
 		case 2:
 		{
-			numOfUes = 7;
+			numOfUes = 1;
 			ueNodes.Create(numOfUes);
-			Ns2MobilityHelper ns2 = Ns2MobilityHelper ("scratch/manhattan-grid.ns_movements");
+			numOfmmWaveEnbs = 10;
+			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
+			numOfLteEnbs = 1;
+			lteEnbNodes.Create(numOfLteEnbs);
+			Ns2MobilityHelper ns2 = Ns2MobilityHelper ("scratch/MobilityTraces.txt");
 			ns2.Install ();
 			NS_LOG_UNCOND("Trace Mobility is installed.");
 			break;
 		}
+		/********** Using Trace Files for Scenario=2**********/
 		case 3:
 			break;
 		case 4:
@@ -443,8 +446,9 @@ main (int argc, char *argv[])
   DoubleValue doubleValue;
   //EnumValue enumValue;
 
-  // Variables for the RT 
+  /********** Report Table Periodicity and Transient Time **********/
   int windowForTransient = 150; // number of samples for the vector to use in the filter
+
   GlobalValue::GetValueByName("reportTablePeriodicity", uintegerValue);
   int ReportTablePeriodicity = (int)uintegerValue.Get(); // in microseconds
   if(ReportTablePeriodicity == 1600)
@@ -465,6 +469,7 @@ main (int argc, char *argv[])
   }
 
   int vectorTransient = windowForTransient*ReportTablePeriodicity;
+  /********** Report Table Periodicity and Transient Time **********/
 
   /********** FS or HH mode **********/
   GlobalValue::GetValueByName("fastSwitching", booleanValue);
@@ -573,6 +578,7 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcAm::BufferSizeFilename", StringValue(path + version + "RlcAmBufferSize" +  "_" + seedSetStr + "_" + runSetStr + "_" + time_str + extension));
   /********** Exporting Output Files **********/
 
+  /********** Class Related Constants **********/
   Config::SetDefault ("ns3::MmWaveHelper::RlcAmEnabled", BooleanValue(rlcAmEnabled));
   Config::SetDefault ("ns3::MmWaveHelper::HarqEnabled", BooleanValue(harqEnabled));
   Config::SetDefault ("ns3::MmWaveFlexTtiMacScheduler::HarqEnabled", BooleanValue(harqEnabled));
@@ -610,21 +616,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteRlcAm::StatusProhibitTimer", TimeValue(MilliSeconds(10.0)));
   Config::SetDefault ("ns3::LteRlcAm::MaxTxBufferSize", UintegerValue (bufferSize * 1024 * 1024));
 
-  /********** SCH TTT setting **********/
-  switch(hoMode)
-  {
-    case 1:
-        Config::SetDefault ("ns3::LteEnbRrc::SecondaryCellHandoverMode", EnumValue(LteEnbRrc::THRESHOLD));
-        break;
-    case 2:
-        Config::SetDefault ("ns3::LteEnbRrc::SecondaryCellHandoverMode", EnumValue(LteEnbRrc::FIXED_TTT));
-        break;
-    case 3:
-        Config::SetDefault ("ns3::LteEnbRrc::SecondaryCellHandoverMode", EnumValue(LteEnbRrc::DYNAMIC_TTT));
-        break;
-  }
-  /********** SCH TTT setting **********/
-  
   Config::SetDefault ("ns3::LteEnbRrc::FixedTttValue", UintegerValue (150));
   Config::SetDefault ("ns3::LteEnbRrc::CrtPeriod", IntegerValue (ReportTablePeriodicity));
   Config::SetDefault ("ns3::LteEnbRrc::OutageThreshold", DoubleValue (outageTh));
@@ -633,13 +624,6 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWaveEnbPhy::NoiseAndFilter", BooleanValue(noiseAndFilter));
   Config::SetDefault ("ns3::MmWaveEnbPhy::NoiseFigure", DoubleValue (5.0));
 
-  GlobalValue::GetValueByName("lteUplink", booleanValue);
-  bool lteUplink = booleanValue.Get();
-
-  Config::SetDefault("ns3::McUePdcp::LteUplink", BooleanValue(lteUplink));
-  std::cout << "Lte uplink " << lteUplink << "\n";
-
-  /********** settings for the 3GPP the channel **********/
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::ChannelCondition", StringValue("a"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::Scenario", StringValue("UMi-StreetCanyon"));
   Config::SetDefault ("ns3::MmWave3gppPropagationLossModel::OptionalNlos", BooleanValue(true));
@@ -655,14 +639,36 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::MmWave3gppChannel::Blockage", BooleanValue(true)); // use blockage or not
   Config::SetDefault ("ns3::MmWave3gppChannel::PortraitMode", BooleanValue(true)); // use blockage model with UT in portrait mode
   Config::SetDefault ("ns3::MmWave3gppChannel::NumNonselfBlocking", IntegerValue(4)); // number of non-self blocking obstacles
-  /********** settings for the 3GPP the channel **********/
 
   /********** settings building materials **********/
   Config::SetDefault ("ns3::Building::Type", StringValue("Residential"));
   Config::SetDefault ("ns3::Building::ExternalWallsType", StringValue("ConcreteWithWindows"));
   /********** settings building materials **********/
 
-  /********** settings for the pathloss model **********/
+  /********** Class Related Constants **********/
+
+  /********** SCH TTT setting **********/
+  switch(hoMode)
+  {
+    case 1:
+        Config::SetDefault ("ns3::LteEnbRrc::SecondaryCellHandoverMode", EnumValue(LteEnbRrc::THRESHOLD));
+        break;
+    case 2:
+        Config::SetDefault ("ns3::LteEnbRrc::SecondaryCellHandoverMode", EnumValue(LteEnbRrc::FIXED_TTT));
+        break;
+    case 3:
+        Config::SetDefault ("ns3::LteEnbRrc::SecondaryCellHandoverMode", EnumValue(LteEnbRrc::DYNAMIC_TTT));
+        break;
+  }
+  /********** SCH TTT setting **********/
+
+  GlobalValue::GetValueByName("lteUplink", booleanValue);
+  bool lteUplink = booleanValue.Get();
+
+  Config::SetDefault("ns3::McUePdcp::LteUplink", BooleanValue(lteUplink));
+  std::cout << "Lte uplink " << lteUplink << "\n";
+
+  /********** settings for the pathloss and channel model **********/
   Ptr<MmWaveHelper> mmwaveHelper = CreateObject<MmWaveHelper> (); 
   if(true)
   {
@@ -673,11 +679,13 @@ main (int argc, char *argv[])
     mmwaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::MmWave3gppPropagationLossModel"));
     //  mmwaveHelper->SetAttribute ("PathlossModel", StringValue ("ns3::BuildingsObstaclePropagationLossModel"));
   }
-  /********** settings for the pahloss model **********/
-
-  mmwaveHelper->SetAttribute ("LteHandoverAlgorithm", StringValue ("ns3::A2A4RsrqHandoverAlgorithm"));
 
   mmwaveHelper->SetAttribute ("ChannelModel", StringValue ("ns3::MmWave3gppChannel"));
+  /********** settings for the pathloss and channel model **********/
+
+  /********** LTE Handover (N/A at this time) **********/
+  mmwaveHelper->SetAttribute ("LteHandoverAlgorithm", StringValue ("ns3::A2A4RsrqHandoverAlgorithm"));
+  /********** LTE Handover (N/A at this time) **********/
 
   //Ptr<MmWaveHelper> mmwaveHelper = CreateObject<MmWaveHelper> ();
   //mmwaveHelper->SetSchedulerType ("ns3::MmWaveFlexTtiMaxWeightMacScheduler");
@@ -719,11 +727,6 @@ main (int argc, char *argv[])
   /********** SIM TIME **********/
   double transientDuration = double(vectorTransient)/1000000;
   /********** SIM TIME **********/
-
-  /********** create LTE, mmWave eNB nodes and UE node **********/
-  NodeContainer lteEnbNodes;
-  NodeContainer mmWaveEnbNodes;
-  /********** create LTE, mmWave eNB nodes and UE node **********/
 
   /********** Create Buildings **********/
 
@@ -771,7 +774,7 @@ main (int argc, char *argv[])
 				// start UE movement after Seconds(0.5); Go in (+) x direction for 10-transientDuration seconds =~ 100m
 				Simulator::Schedule(Seconds(transientDuration), &ChangeSpeed, ueNodes.Get(0), Vector(ueSpeed, 0, 0));
 			}
-			simTime = 10;
+			simTime = 200;
 			/********** Set positions **********/
 
 			Ptr < Building > building1;
@@ -859,16 +862,12 @@ main (int argc, char *argv[])
 			gnuplot_scenario_ues = "scenario-2-ues.txt";
 
 			/********** network initializations**********/
-			numOfmmWaveEnbs = 2;
-			numOfLteEnbs = 1;
-			lteEnbNodes.Create(numOfLteEnbs);
-			mmWaveEnbNodes.Create(numOfmmWaveEnbs);
 			/********** network initializations**********/
 
 			/********** Set positions **********/
-			mmWaveEnbPos->Add(Vector(0, 50, 3));
-			mmWaveEnbPos->Add(Vector(100, 100, 3));
-			lteEnbPos->Add(Vector(100, 100, 3));
+			//mmWaveEnbPos->Add(Vector(0, 50, 3));
+			//mmWaveEnbPos->Add(Vector(100, 100, 3));
+			//lteEnbPos->Add(Vector(100, 100, 3));
 			if (!useTrace){
 				numOfUes = 1;
 				ueNodes.Create(numOfUes);
@@ -882,18 +881,18 @@ main (int argc, char *argv[])
 				// Go in (-) y direction for 8 seconds = 80m
 				Simulator::Schedule(Seconds(27), &ChangeSpeed, ueNodes.Get(0), Vector(0, -ueSpeed, 0));
 			}
-			simTime = 36;
+			simTime = 200;
 			/********** Set positions **********/
 
 			Ptr < Building > building1;
 			building1 = Create<Building> ();
-			building1->SetBoundaries (Box (40.0,50.0,
-										  80.0, 110.0,
+			building1->SetBoundaries (Box (10.0,11.0,
+										  0.0, 5.0,
 										  0.0, zHeight));
 			building1->SetNRoomsX (nXrooms);
 			building1->SetNRoomsY (nYrooms);
 			building1->SetNFloors (nFloors);
-			//building1->SetNFloors (1);
+			building1->SetNFloors (1);
 
 			Ptr < Building > building2;
 			building2 = Create<Building> ();
@@ -1165,16 +1164,20 @@ main (int argc, char *argv[])
   /********** Create Buildings **********/
 
   /********** Install Mobility Models and Initial positions **********/
+  if(!useTrace){
   MobilityHelper lteEnbMobility;
   lteEnbMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   lteEnbMobility.SetPositionAllocator(lteEnbPos);
   lteEnbMobility.Install (lteEnbNodes);
+  }
   BuildingsHelper::Install (lteEnbNodes);
 
+  if(!useTrace){
   MobilityHelper mmWaveEnbMobility;
   mmWaveEnbMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mmWaveEnbMobility.SetPositionAllocator(mmWaveEnbPos);
   mmWaveEnbMobility.Install (mmWaveEnbNodes);
+  }
   BuildingsHelper::Install (mmWaveEnbNodes);
 
   if(!useTrace){
@@ -1187,7 +1190,7 @@ main (int argc, char *argv[])
   BuildingsHelper::Install (ueNodes);
   /********** Install Mobility Models and Initial positions **********/
 
-  // Install mmWave, lte, mc Devices to the nodes
+  /********** Install 5G and 4G Protocols **********/
   NetDeviceContainer lteEnbDevs = mmwaveHelper->InstallLteEnbDevice (lteEnbNodes);
   NetDeviceContainer mmWaveEnbDevs = mmwaveHelper->InstallEnbDevice (mmWaveEnbNodes);
   NetDeviceContainer mcUeDevs;
@@ -1203,8 +1206,9 @@ main (int argc, char *argv[])
   {
     NS_FATAL_ERROR("Invalid option");
   }
+  /********** Install 5G and 4G Protocols **********/
 
-  // Install the IP stack on the UEs
+  /********** Install the IP stack on the UEs **********/
   internet.Install (ueNodes);
   Ipv4InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (mcUeDevs));
@@ -1216,11 +1220,11 @@ main (int argc, char *argv[])
     Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNode->GetObject<Ipv4> ());
     ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
   }
+  /********** Install the IP stack on the UEs **********/
 
-  // Add X2 interfaces
   mmwaveHelper->AddX2Interface (lteEnbNodes, mmWaveEnbNodes);
 
-  // Manual attachment
+  /********** Attach eNBs and UEs **********/
   if(fastSwitching)
   {
 	/********** Attach MC ueDevices to the closest LTE enbDevice, register all MmWave eNBs to the MmWaveUePhy **********/
@@ -1230,8 +1234,9 @@ main (int argc, char *argv[])
   {
     mmwaveHelper->AttachIrToClosestEnb (mcUeDevs, mmWaveEnbDevs, lteEnbDevs);
   }
+  /********** Attach eNBs and UEs **********/
   
-  // Install and start applications on UEs and remote host
+  /********** Install and start applications on UEs and remote host **********/
   uint16_t dlPort = 1234;
   uint16_t ulPort = 2000;
   ApplicationContainer clientApps;
@@ -1265,12 +1270,14 @@ main (int argc, char *argv[])
         clientApps.Add (ulClient.Install (ueNodes.Get(u)));
       }
   }
+  /********** Install and start applications on UEs and remote host **********/
 
-  // Start applications
+  /********** Start applications **********/
   NS_LOG_UNCOND("transientDuration " << transientDuration << " simTime " << simTime);
   serverApps.Start (Seconds(transientDuration));
   clientApps.Start (Seconds(transientDuration));
   clientApps.Stop (Seconds(simTime - 1));
+  /********** Start applications **********/
 
   // stop UE movement after Seconds(0.5)
   Simulator::Schedule(Seconds(simTime + 0.5), &ChangeSpeed, ueNodes.Get(0), Vector(0, 0, 0));
@@ -1287,28 +1294,31 @@ main (int argc, char *argv[])
 
   BuildingsHelper::MakeMobilityModelConsistent ();
 
+  /********** Some Traces and Callbacks **********/
   mmwaveHelper->EnableTraces ();
 
   Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/ConnectionEstablished",
                      MakeCallback (&NotifyConnectionEstablishedEnb));
-    Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/ConnectionEstablished",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/ConnectionEstablished",
                      MakeCallback (&NotifyConnectionEstablishedUe));
-    Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverStart",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverStart",
                      MakeCallback (&NotifyHandoverStartEnb));
-    Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/HandoverStart",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/HandoverStart",
                      MakeCallback (&NotifyHandoverStartUe));
-    Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverEndOk",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverEndOk",
                      MakeCallback (&NotifyHandoverEndOkEnb));
-    Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/HandoverEndOk",
+  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/HandoverEndOk",
                      MakeCallback (&NotifyHandoverEndOkUe));
+  /********** Some Traces and Callbacks **********/
 
-  // set to print = True if you want to print the map of buildings, ues and enbs
+  /********** set to print = True if you want to print the map of buildings, ues and enbs **********/
   if(print)
   {
     PrintGnuplottableBuildingListToFile(gnuplot_scenario_buildings);
     PrintGnuplottableEnbListToFile(gnuplot_scenario_enbs);
     PrintGnuplottableUeListToFile(gnuplot_scenario_ues);
   }
+  /********** set to print = True if you want to print the map of buildings, ues and enbs **********/
 
   /********** Flow monitor, not necessary **********/
 //  Ptr<FlowMonitor> flowMonitor;
