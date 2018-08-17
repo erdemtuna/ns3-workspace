@@ -921,7 +921,7 @@ MmWave3gppChannel::CalBeamformingGain (Ptr<const SpectrumValue> txPsd, Ptr<Param
 				m_mmWaveOutFile.open(m_mmWaveOutputFilename.c_str());
 		    }
 			//m_mmWaveOutFile.open(m_mmWaveOutputFilename.c_str());
-			m_mmWaveOutFile << Simulator::Now ().GetNanoSeconds () / 1.0e9 << " " << params->m_angle.at(ZOA_INDEX).at(numCluster/2) << " "<< params->m_angle.at(AOA_INDEX).at(numCluster/2) << " "<< params->m_angle.at(ZOD_INDEX).at(numCluster/2) <<  " "<< params->m_angle.at(AOD_INDEX).at(numCluster/2) <<" ";
+			m_mmWaveOutFile << Simulator::Now ().GetNanoSeconds () << " " << params->m_angle.at(ZOA_INDEX).at(numCluster/2) << " "<< params->m_angle.at(AOA_INDEX).at(numCluster/2) << " "<< params->m_angle.at(ZOD_INDEX).at(numCluster/2) <<  " "<< params->m_angle.at(AOD_INDEX).at(numCluster/2) <<" ";
 
 	for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
 	{
