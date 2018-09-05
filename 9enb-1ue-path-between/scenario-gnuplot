@@ -55,10 +55,12 @@ set label "8" at 1000,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc
 set label "9" at 1500,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
 
 #set the x range of the map
-set xrange [0:1600]
+set xrange [-100:1600]
+set mxtics 5
 
 #set the y range of the map
-set yrange [0:1600]
+set yrange [-100:1600]
+set mytics 2
 
 
 #set the axis labels
@@ -74,8 +76,7 @@ set grid xtics lc rgb "#393939" lw 1 lt 0
 f1(x) = exp(-x**2/2)
 f2(x) = sin(x)/x
 f3(x) = 0.5*sin(2*x)/x
-plot f1(x) ls 1 notitle, f2(x) ls 2 notitle, f3(x) ls 3 notitle, \
-     NaN with points pt 7 lc rgb "red" title "LTE eNB", \
+plot NaN with points pt 7 lc rgb "red" title "LTE eNB", \
      NaN with points pt 7 lc rgb "blue" title "UE", \
      NaN with points pt 6 lc rgb "blue" title " Handover"
 
