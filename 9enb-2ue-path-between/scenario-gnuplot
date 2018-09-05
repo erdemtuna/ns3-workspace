@@ -19,10 +19,10 @@
 ###set object "9" circle at 50,50 size char 2 fillcolor rgb "red" fillstyle solid
 
 set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
-set out '9-4genb-1-ue.png'
+set out '9-4genb-2-ues.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
-set title "9 LTE eNB and 1 UE Scenario"
+set title "9 LTE eNB and 2 UEs Scenario"
 set title  font ",20" norotate
 
 ########### Buildings SECTION ###########
@@ -61,11 +61,12 @@ set label "8" at 1000,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc
 set label "9" at 1500,1500 left offset char 1,0 point pointtype 7 pointsize 3 lc rgb "red"
 
 #set the x range of the map
-set xrange [0:1600]
+set xrange [-100:1700]
+set mxtics 5
 
 #set the y range of the map
-set yrange [0:1600]
-
+set yrange [-100:1600]
+set mytics 2
 
 #set the axis labels
 set xlabel "X [m]"
@@ -80,8 +81,7 @@ set grid xtics lc rgb "#393939" lw 1 lt 0
 f1(x) = exp(-x**2/2)
 f2(x) = sin(x)/x
 f3(x) = 0.5*sin(2*x)/x
-plot f1(x) ls 1 notitle, f2(x) ls 2 notitle, f3(x) ls 3 notitle, \
-     NaN with points pt 7 lc rgb "red" title "LTE eNB", \
+plot NaN with points pt 7 lc rgb "red" title "LTE eNB", \
      NaN with points pt 7 lc rgb "blue" title "UE", \
      NaN with points pt 6 lc rgb "blue" title " Handover"
 
