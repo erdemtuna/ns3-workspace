@@ -22,7 +22,7 @@ set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 72
 set out '9-4genb-2-ues.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
-set title "9 LTE eNB and 2 UEs Scenario"
+set title "9 LTE eNBs and 2 UEs Scenario"
 set title  font ",20" norotate
 
 ########### Buildings SECTION ###########
@@ -33,7 +33,7 @@ set label "1" at 0,0 left offset char 1,-1 point pointtype 7 pointsize 3 lc rgb 
 set arrow 1 from 0,0 to 200,250 linewidth 2.000
 set angles degrees
 set label "UE speed (20,25)" at 20,60 left rotate by 30.5
-set label "2" at 1600,0  offset char 1,.5 point pointtype 7 pointsize 3 lc rgb "blue"
+set label "2" at 1600,0 left offset char 1,-1 point pointtype 7 pointsize 3 lc rgb "blue"
 set arrow 2 from 1600,0 to 1400,250 linewidth 2.000
 set angles degrees
 set label "UE speed (-20,25)" at 1450,230 left rotate by -30.5
@@ -81,7 +81,7 @@ set grid xtics lc rgb "#393939" lw 1 lt 0
 f1(x) = exp(-x**2/2)
 f2(x) = sin(x)/x
 f3(x) = 0.5*sin(2*x)/x
-plot NaN with points pt 7 lc rgb "red" title "LTE eNB", \
+plot NaN with points pt 7 lc rgb "red" title " LTE eNB", \
      NaN with points pt 7 lc rgb "blue" title "UE", \
      NaN with points pt 6 lc rgb "blue" title " Handover"
 

@@ -19,10 +19,10 @@
 ###set object "9" circle at 50,50 size char 2 fillcolor rgb "red" fillstyle solid
 
 set terminal pngcairo solid enhanced font "arial,12" fontscale 1.0 size 1440, 720
-set out 'scenario-2-map.png'
+set out 'scenario-2-map-basic.png'
 set key fixed left top vertical Right noreverse enhanced autotitle box lt black linewidth 1.000 dashtype solid
 set samples 50, 50
-set title "Scenario - 2"
+set title "Sub-scenario 2"
 set title  font ",20" norotate
 
 ########### Buildings SECTION ###########
@@ -53,23 +53,23 @@ set label "" at 100,80 left offset char -3,0 point pointtype 7 pointsize 1 lc rg
 set label "" at 190,80 left offset char -3,0 point pointtype 7 pointsize 1 lc rgb "black"
 
 ########### Handovers SECTION ###########
-set label "2-->3" at (10*10),(0.1388*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "2-->3" at (10*10),(0.1388*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "3-->2" at (10*10),(4.0188*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "3-->2" at (10*10),(4.0188*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "2-->3" at (10*10),(6.0044*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "2-->3" at (10*10),(6.0044*10) front left offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "3-->2" at ((23.1932-8)*10),(8*10) front right offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "3-->2" at ((23.1932-8)*10),(8*10) front right offset char .5,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "2-->3" at ((23.246-8)*10),(8*10) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "2-->3" at ((23.246-8)*10),(8*10) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "2-->1" at (19*10),(80-(27.206-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "2-->1" at (19*10),(80-(27.206-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "1-->3" at (19*10),(80-(28.228-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "1-->3" at (19*10),(80-(28.228-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "3-->2" at (19*10),(80-(28.958-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "3-->2" at (19*10),(80-(28.958-27)*10) front right offset char -1,.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
-set label "2-->3" at (19*10),(80-(34.0636-27)*10) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
+#set label "2-->3" at (19*10),(80-(34.0636-27)*10) front left offset char .5,-.5 point pointtype 6 pointsize 1.25 lc rgb "blue"
 
 ########### eNB SECTION ###########
 set label "" at 100,100 front left offset char -3.5,.5 point pointtype 7 pointsize 3 lc rgb "brown"
@@ -102,7 +102,6 @@ set grid xtics lc rgb "#393939" lw 1 lt 0
 plot NaN with points pt 7 lc rgb "brown" title "LTE eNB", \
 	 NaN with points pt 7 lc rgb "red" title "  mmWave eNB", \
      NaN with points pt 7 lc rgb "blue" title "UE", \
-     NaN with points pt 6 lc rgb "blue" title " Handover", \
      NaN with points pt 5 lc rgb "gray" title "Building"
 
 set out
